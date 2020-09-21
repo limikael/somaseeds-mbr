@@ -1,7 +1,7 @@
 {
 	"server": "gqtt://postman.cloudmqtt.com",
 	"username": "hbpiywwf",
-	"password": "VO5sPd3HeesO",
+	"password": "",
 	"port": "13342",
 	"topic": "mbr"
 }
