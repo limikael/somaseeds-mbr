@@ -1,3 +1,13 @@
 #!/usr/bin/env node
 
-console.log("hello");
+const Mbr=require("./Mbr.js");
+const path=require("path");
+
+if (process.argv.length!=3) {
+	console.log("Usage: mbr <settingsfile>")
+	process.exit();
+}
+
+let settings=require(path.resolve(process.argv[2]));
+let mbr=new Mbr(settings);
+mbr.run();
