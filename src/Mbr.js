@@ -1,19 +1,6 @@
 const mqtt=require("mqtt");
 const Blinker=require("./Blinker.js");
-/*
-//let blinker=new Blinker(17);
-
-const Gpio = require('onoff').Gpio; //include onoff to interact with the GPIO
-
-let LED = new Gpio(17, 'out'); //use GPIO pin 4, and specify that it is output
-LED.writeSync(1);
-
-console.log("starting");
-setTimeout(()=>{
-	console.log("done..");
-	LED.writeSync(0);
-},5000);
-*/
+const sensor=require("node-dht-sensor");
 
 class Mbr {
 	constructor(settings) {
@@ -40,20 +27,31 @@ class Mbr {
 
 		this.mqttClient.on("connect",()=>{
 			console.log("** Mqtt: Connected.");
-			this.connectionBlinker.setBlinkPattern("xxxxxxxxxxxxxxxxxxx ");
+			this.connectionBlinker.setBlinkPattern("x                    ");
 		});
 
 		this.mqttClient.on("offline",()=>{
 			console.log("** Mqtt: Offline.");
-			this.connectionBlinker.setBlinkPattern("x x                 ");
+			this.connectionBlinker.setBlinkPattern("x ");
 		});
 
 		this.mqttClient.on("error",()=>{
 			console.log("** Mqtt: Connection error.");
-			this.connectionBlinker.setBlinkPattern("x x                 ");
+			this.connectionBlinker.setBlinkPattern("x ");
 		});
 
 		//this.mqttClient.on("message",this.handleMessage);
+	}
+
+	onMeasureInterval=()=>{
+		sensor.read(22,4,function(err, temperature, humidity) {
+			if (err) {
+				console.log("Sensor error: "+err);
+				return;
+			}
+
+			console.log(`## temp: ${temperature}°C, humidity: ${humidity}%`);
+		});
 	}
 
 	run() {
@@ -61,6 +59,7 @@ class Mbr {
 		this.connectionBlinker=new Blinker(17);
 		this.connectionBlinker.setBlinkPattern("x");
 		this.startMqtt();
+		setInterval(this.onMeasureInterval,5000);
 	}
 }
 
