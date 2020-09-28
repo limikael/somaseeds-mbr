@@ -1,6 +1,7 @@
 const mqtt=require("mqtt");
 const Blinker=require("./Blinker.js");
 const sensor=require("node-dht-sensor");
+const querystring=require("querystring");
 
 class Mbr {
 	constructor(settings) {
@@ -44,11 +45,14 @@ class Mbr {
 	}
 
 	onMeasureInterval=()=>{
-		sensor.read(22,4,function(err, temperature, humidity) {
+		sensor.read(22,4,(err, temperature, humidity)=>{
 			if (err) {
 				console.log("Sensor error: "+err);
 				return;
 			}
+
+			this.mqttClient.publish("mbr",querystring.stringify({var: "temperature", value: temperature}));
+			this.mqttClient.publish("mbr",querystring.stringify({var: "humidity", value: humidity}));
 
 			console.log(`## temp: ${temperature}°C, humidity: ${humidity}%`);
 		});
