@@ -1,11 +1,13 @@
 const EventEmitter = require('events');
 const mqtt=require("mqtt");
+const querystring=require("querystring");
 
 class MqttManager extends EventEmitter {
-	constructor(settings) {
+	constructor(settings, commandManager) {
 		super();
 
 		this.settings=settings;
+		this.commandManager=commandManager;
 		this.connected=false;
 	}
 
@@ -22,6 +24,35 @@ class MqttManager extends EventEmitter {
 			return false;
 
 		return this.mqttClient.connected;
+	}
+
+	onMqttMessage=async (topic, payload)=>{
+		let message={...querystring.parse(String(payload))};
+		let response={};
+
+		console.log("MQTT message: "+JSON.stringify(message));
+
+		if (message.hasOwnProperty("__res"))
+			return;
+
+		if (this.commandManager.actions.includes(message.action)) {
+			try {
+				response=await this.commandManager[message.action](message);
+				response.ok=1;
+			}
+
+			catch (e) {
+				response.error=String(e);
+			}
+		}
+
+		else {
+			response.error="Unknown command "+message.action;
+		}
+
+		response.__res=message.__req;
+
+		this.mqttClient.publish(topic,querystring.stringify(response));
 	}
 
 	run() {
@@ -47,6 +78,8 @@ class MqttManager extends EventEmitter {
 			console.log("** Mqtt: Connection error.");
 			this.emit("statusChange");
 		});
+
+		this.mqttClient.on("message",this.onMqttMessage);
 	}
 }
 
