@@ -7,6 +7,8 @@ class ApiProxy {
 	}
 
 	handleCall=async (req, res)=>{
+		//console.log(req);
+
 		let u=url.parse(req.url);
 		let path=u.pathname.split("/").filter(x=>x);
 		let params={...querystring.parse(u.query)};
