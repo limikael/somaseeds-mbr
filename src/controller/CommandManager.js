@@ -18,6 +18,7 @@ class CommandManager {
 
 	status(params) {
 		return {
+			"ok": 1,
 			"status": "ok"
 		};
 	}
@@ -32,7 +33,9 @@ class CommandManager {
 
 		this.relays[params.relay].writeSync(v);
 
-		return {};
+		return {
+			ok: 1
+		};
 	}
 }
 

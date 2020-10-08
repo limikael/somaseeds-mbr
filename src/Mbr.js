@@ -1,16 +1,22 @@
 const Blinker=require("./util/Blinker.js");
-const MqttManager=require("./controller/MqttManager.js");
 const SensorManager=require("./controller/SensorManager.js");
 const CommandManager=require("./controller/CommandManager.js");
+const restbroker=require("restbroker");
+const ApiProxy=require("./util/ApiProxy");
 
 class Mbr {
 	constructor(settings) {
 		this.settings=settings;
 
 		this.commandManager=new CommandManager(this);
+		this.apiProxy=new ApiProxy(this.commandManager);
 
-		this.mqttManager=new MqttManager(this.settings, this.commandManager);
-		this.mqttManager.on("statusChange",this.updateStatus);
+		this.restClient=new restbroker.Client({
+			url: this.settings.brokerUrl,
+			handler: this.apiProxy.handleCall
+		});
+
+		this.restClient.on("stateChange",this.updateStatus);
 
 		this.sensorManager=new SensorManager(this.settings);
 		this.sensorManager.on("statusChange",this.updateStatus);
@@ -20,10 +26,10 @@ class Mbr {
 
 	updateStatus=()=>{
 		console.log("update status"
-			+", mqtt: "+this.mqttManager.isConnected()
+			+", rest: "+this.restClient.isConnected()
 			+", sensors: "+this.sensorManager.getStatus());
 
-		let status=(this.mqttManager.isConnected() && this.sensorManager.getStatus());
+		let status=(this.restClient.isConnected() && this.sensorManager.getStatus());
 
 		if (status)
 			this.connectionBlinker.setBlinkPattern("x                    ");
@@ -35,7 +41,6 @@ class Mbr {
 	run() {
 		console.log("**** Starting the MBR. ****");
 
-		this.mqttManager.run();
 		this.sensorManager.run();
 
 		this.updateStatus();
