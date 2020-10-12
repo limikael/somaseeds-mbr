@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const DhtSensor=require("../util/DhtSensor.js");
 const FetchUtil=require("../util/FetchUtil.js");
+const Mcp=require("../util/Mcp.js");
 
 class SensorManager extends EventEmitter {
 	constructor(settings) {
@@ -8,6 +9,7 @@ class SensorManager extends EventEmitter {
 
 		this.settings=settings;
 		this.dhtSensor=new DhtSensor(22,4)
+		this.mcp=new Mcp();
 		this.status=false;
 	}
 
@@ -18,7 +20,8 @@ class SensorManager extends EventEmitter {
 	makeReading=async ()=>{
 		try {
 			let vals=await this.dhtSensor.read();
-			console.log(vals);
+			let ph=await this.mcp.read();
+			console.log("temp: "+vals.temperature+" humidity: "+vals.humidity+" ph: "+ph);
 
 			await FetchUtil.postForm(this.settings.url,{
 				var: "temperature",
