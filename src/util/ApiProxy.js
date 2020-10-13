@@ -20,7 +20,7 @@ class ApiProxy {
 		}
 
 		try {
-			let result=this.api[funcName](params);
+			let result=await this.api[funcName](params);
 			res.end(JSON.stringify(result,null,2)+"\n");
 		}
 

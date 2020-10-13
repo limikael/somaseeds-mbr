@@ -37,6 +37,25 @@ class CommandManager {
 			ok: 1
 		};
 	}
+
+	async step(params) {
+		let steps=parseInt(params.steps);
+		if (!steps)
+			steps=200;
+
+		this.mbr.stepper.setDirection(true);
+		if (steps<0) {
+			this.mbr.stepper.setDirection(false);
+			steps=-steps;
+		}
+
+		await this.mbr.stepper.step(steps);
+		this.mbr.stepper.release();
+
+		return {
+			ok: 1
+		};
+	}
 }
 
 module.exports=CommandManager;

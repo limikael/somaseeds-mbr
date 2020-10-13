@@ -3,6 +3,7 @@ const SensorManager=require("./controller/SensorManager.js");
 const CommandManager=require("./controller/CommandManager.js");
 const restbroker=require("restbroker");
 const ApiProxy=require("./util/ApiProxy");
+const Stepper=require("../src/util/Stepper");
 
 class Mbr {
 	constructor(settings) {
@@ -22,6 +23,9 @@ class Mbr {
 		this.sensorManager.on("statusChange",this.updateStatus);
 
 		this.connectionBlinker=new Blinker(17);
+
+		this.stepper=new Stepper(16,20,21,26);
+		this.stepper.setStepsPerSec(200);
 	}
 
 	updateStatus=()=>{
