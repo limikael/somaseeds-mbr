@@ -89,6 +89,7 @@ class Stepper {
 	}
 
 	release() {
+		this.stop();
 		this.writePins([0,0,0,0]);
 	}
 }

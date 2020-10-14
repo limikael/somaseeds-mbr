@@ -77,7 +77,7 @@ class CommandManager {
 	}
 
 	stop(params) {
-		this.mbr.stepper.stop();
+		this.mbr.stepper.release();
 		return {
 			ok: 1
 		};
