@@ -18,6 +18,13 @@ class Stepper {
 		this.intervalMillis=1000/v;
 	}
 
+	setRpm(rpm, stepsPerRevolution) {
+		if (!stepsPerRevolution)
+			stepsPerRevolution=200;
+
+		this.setStepsPerSec(stepsPerRevolution*rpm/60);
+	}
+
 	writePins(vals) {
 		for (let i=0; i<4; i++)
 			this.pins[i].writeSync(vals[i]);

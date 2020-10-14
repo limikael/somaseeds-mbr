@@ -56,6 +56,32 @@ class CommandManager {
 			ok: 1
 		};
 	}
+
+	start(params) {
+		let rpm=parseInt(params.rpm);
+		if (!rpm)
+			rpm=60;
+
+		if (rpm<10)
+			rpm=10;
+
+		if (rpm>240)
+			rpm=240;
+
+		this.mbr.stepper.setRpm(rpm,200)
+		this.mbr.stepper.start();
+		return {
+			ok: 1,
+			rpm: rpm
+		};
+	}
+
+	stop(params) {
+		this.mbr.stepper.stop();
+		return {
+			ok: 1
+		};
+	}
 }
 
 module.exports=CommandManager;
