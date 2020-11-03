@@ -8,7 +8,7 @@ class SensorManager extends EventEmitter {
 		super();
 
 		this.settings=settings;
-		this.dhtSensor=new DhtSensor(22,4)
+		this.dhtSensor=new DhtSensor(22,4);
 		this.mcp=new Mcp();
 		this.status=false;
 	}
