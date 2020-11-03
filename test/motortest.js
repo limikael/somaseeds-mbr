@@ -1,7 +1,18 @@
 const Stepper=require("../src/util/Stepper");
+const i2cbus=require('i2c-bus');
+const Mcp23017=require("../src/util/Mcp23017.js");
 
-let stepper=new Stepper(16,20,21,26);
-stepper.setStepsPerSec(200);
+const i2c=i2cbus.openSync(1);
+let mcp=new Mcp23017(i2c,0x21);
+
+let stepper=new Stepper(
+	mcp.createGPIO(0,'output'),
+	mcp.createGPIO(1,'output'),
+	mcp.createGPIO(2,'output'),
+	mcp.createGPIO(3,'output')
+);
+
+stepper.setStepsPerSec(400);
 stepper.setDirection(false);
 
 async function main() {

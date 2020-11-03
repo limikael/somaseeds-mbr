@@ -25,7 +25,13 @@ class Mbr {
 			relayMcp.createGPIO(3,'output')
 		];
 
-		this.stepper=new Stepper(16,20,21,26);
+		let stepperMcp=new Mcp23017(this.i2c,0x21);
+		this.stepper=new Stepper(
+			stepperMcp.createGPIO(0,'output'),
+			stepperMcp.createGPIO(1,'output'),
+			stepperMcp.createGPIO(2,'output'),
+			stepperMcp.createGPIO(3,'output')
+		);
 		this.stepper.setStepsPerSec(200);
 
 		this.commandManager=new CommandManager(this);
