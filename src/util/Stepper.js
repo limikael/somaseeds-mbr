@@ -3,11 +3,6 @@ const Gpio = require('onoff').Gpio;
 class Stepper {
 	constructor(M00, M01, M10, M11) {
 		this.pins=[
-/*			new Gpio(M00,'out'),
-			new Gpio(M10,'out'),
-			new Gpio(M01,'out'),
-			new Gpio(M11,'out'),*/
-
 			M00,M10,M01,M11
 		];
 

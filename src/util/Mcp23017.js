@@ -14,14 +14,25 @@ class Mcp23017 {
 		this.i2c=i2c;
 		this.devId=devId;
 		this.pins=0x00;
+		this.updatePinsCnt=0;
+		//this.dirty=false;
 
 		// Set all pins as output.
 		this.i2c.writeByteSync(this.devId,0x00,0x00);
 		this.updatePins();
 	}
 
-	updatePins() {
-		this.i2c.writeByteSync(this.devId,0x14,this.pins);
+	updatePins=()=>{
+		//this.dirty=false;
+		this.updatePinsCnt++;
+		//console.log("updating pins... "+this.updatePinsCnt);
+		try {
+			this.i2c.writeByteSync(this.devId,0x14,this.pins);
+		}
+
+		catch (e) {
+			console.log("warning... I2C write error: "+e);
+		}
 	}
 
 	writeSync(pin, val) {
@@ -30,6 +41,11 @@ class Mcp23017 {
 
 		else
 			this.pins&=~(1<<pin);
+
+		/*if (!this.dirty) {
+			this.dirty=true;
+			process.nextTick(this.updatePins); //();
+		}*/
 
 		this.updatePins();
 	}

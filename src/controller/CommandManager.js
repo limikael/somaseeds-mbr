@@ -31,7 +31,7 @@ class CommandManager {
 		};
 	}
 
-	async step(params) {
+	/*async step(params) {
 		let steps=parseInt(params.steps);
 		if (!steps)
 			steps=200;
@@ -48,29 +48,17 @@ class CommandManager {
 		return {
 			ok: 1
 		};
-	}
+	}*/
 
 	start(params) {
-		let rpm=parseInt(params.rpm);
-		if (!rpm)
-			rpm=60;
-
-		if (rpm<10)
-			rpm=10;
-
-		if (rpm>240)
-			rpm=240;
-
-		this.mbr.stepper.setRpm(rpm,200)
-		this.mbr.stepper.start();
+		this.mbr.motor.start();
 		return {
-			ok: 1,
-			rpm: rpm
+			ok: 1
 		};
 	}
 
 	stop(params) {
-		this.mbr.stepper.release();
+		this.mbr.motor.stop();
 		return {
 			ok: 1
 		};

@@ -3,7 +3,7 @@ const SensorManager=require("./controller/SensorManager.js");
 const CommandManager=require("./controller/CommandManager.js");
 const restbroker=require("restbroker");
 const ApiProxy=require("./util/ApiProxy");
-const Stepper=require("../src/util/Stepper");
+const DcMotor=require("../src/util/DcMotor.js");
 const i2cbus=require('i2c-bus');
 const Mcp23017=require("../src/util/Mcp23017.js");
 
@@ -11,8 +11,8 @@ class Mbr {
 	constructor(settings) {
 		this.settings=settings;
 
-		/*this.sensorManager=new SensorManager(this.settings);
-		this.sensorManager.on("statusChange",this.updateStatus);*/
+		this.sensorManager=new SensorManager(this.settings);
+		this.sensorManager.on("statusChange",this.updateStatus);
 
 		this.connectionBlinker=new Blinker(17);
 
@@ -25,14 +25,11 @@ class Mbr {
 			relayMcp.createGPIO(3,'output')
 		];
 
-		let stepperMcp=new Mcp23017(this.i2c,0x21);
-		this.stepper=new Stepper(
-			stepperMcp.createGPIO(0,'output'),
-			stepperMcp.createGPIO(1,'output'),
-			stepperMcp.createGPIO(2,'output'),
-			stepperMcp.createGPIO(3,'output')
+		let motorMcp=new Mcp23017(this.i2c,0x21);
+		this.motor=new DcMotor(
+			motorMcp.createGPIO(0,'output'),
+			motorMcp.createGPIO(1,'output')
 		);
-		this.stepper.setStepsPerSec(200);
 
 		this.commandManager=new CommandManager(this);
 		this.apiProxy=new ApiProxy(this.commandManager);
@@ -48,9 +45,9 @@ class Mbr {
 	updateStatus=()=>{
 		console.log("update status"
 			+", rest: "+this.restClient.isConnected()
-			/*+", sensors: "+this.sensorManager.getStatus()*/);
+			+", sensors: "+this.sensorManager.getStatus());
 
-		let status=(this.restClient.isConnected() /*&& this.sensorManager.getStatus()*/);
+		let status=(this.restClient.isConnected() && this.sensorManager.getStatus());
 
 		if (status)
 			this.connectionBlinker.setBlinkPattern("x                    ");
@@ -62,7 +59,7 @@ class Mbr {
 	run() {
 		console.log("**** Starting the MBR. ****");
 
-		//this.sensorManager.run();
+		this.sensorManager.run();
 
 		this.updateStatus();
 	}
