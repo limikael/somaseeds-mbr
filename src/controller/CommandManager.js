@@ -1,4 +1,5 @@
 const Gpio = require('onoff').Gpio;
+const PromiseUtil = require("../util/PromiseUtil");
 
 class CommandManager {
 	constructor(mbr) {
@@ -50,8 +51,18 @@ class CommandManager {
 		};
 	}*/
 
-	start(params) {
-		this.mbr.motor.start();
+	async start(params) {
+		if (this.mbr.motor.speed!=0) {
+			this.mbr.motor.stop();
+			await PromiseUtil.delay(100);
+		}
+
+		if (params.reverse)
+			this.mbr.motor.setSpeed(-1);
+
+		else
+			this.mbr.motor.setSpeed(1);
+
 		return {
 			ok: 1
 		};

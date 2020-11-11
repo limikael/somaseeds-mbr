@@ -2,6 +2,7 @@ class DcMotor {
 	constructor(pin1, pin2) {
 		this.pin1=pin1;
 		this.pin2=pin2;
+		this.speed=0;
 	}
 
 	start() {
@@ -13,6 +14,8 @@ class DcMotor {
 	}
 
 	setSpeed(speed) {
+		this.speed=speed;
+
 		this.pin1.writeSync(speed<0);
 		this.pin2.writeSync(speed>0);
 	}
