@@ -8,6 +8,5 @@ if (process.argv.length!=3) {
 	process.exit();
 }
 
-let settings=require(path.resolve(process.argv[2]));
-let mbr=new Mbr(settings);
+let mbr=new Mbr(path.resolve(process.argv[2]));
 mbr.run();

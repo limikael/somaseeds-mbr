@@ -1,5 +1,7 @@
 const Gpio = require('onoff').Gpio;
 const PromiseUtil = require("../util/PromiseUtil");
+const later=require("@breejs/later");
+const Ms=require("ms");
 
 class CommandManager {
 	constructor(mbr) {
@@ -70,6 +72,34 @@ class CommandManager {
 
 	stop(params) {
 		this.mbr.motor.stop();
+		return {
+			ok: 1
+		};
+	}
+
+	lightSchedule(params) {
+		if (params.off) {
+			console.log("turning light off");
+			this.mbr.settings.lightSchedule="";
+			this.mbr.settings.lightDuration="";
+		}
+
+		else {
+			let sched=later.parse.text(params.schedule);
+			if (sched.error>=0)
+				throw new Error("Unable to parse schedule expression, at pos "+sched.error);
+
+			let duration=Ms(params.duration);
+			if (duration===undefined || !duration)
+				throw new Error("Unable to parse duration.");
+
+			this.mbr.settings.lightSchedule=params.schedule;
+			this.mbr.settings.lightDuration=params.duration;
+		}
+
+		this.mbr.updateSettings();
+		this.mbr.saveSettings(["lightSchedule","lightDuration"]);
+
 		return {
 			ok: 1
 		};

@@ -6,10 +6,15 @@ const ApiProxy=require("./util/ApiProxy");
 const DcMotor=require("../src/util/DcMotor.js");
 const i2cbus=require('i2c-bus');
 const Mcp23017=require("../src/util/Mcp23017.js");
+const OnOffTimer=require("../src/util/OnOffTimer.js");
+const fs=require("fs");
 
 class Mbr {
-	constructor(settings) {
-		this.settings=settings;
+	constructor(settingsFileName) {
+		console.log("Loading settings from: "+settingsFileName);
+		this.settingsFileName=settingsFileName;
+
+		this.settings=JSON.parse(fs.readFileSync(this.settingsFileName));
 
 		this.sensorManager=new SensorManager(this.settings);
 		this.sensorManager.on("statusChange",this.updateStatus);
@@ -40,6 +45,32 @@ class Mbr {
 		});
 
 		this.restClient.on("stateChange",this.updateStatus);
+
+		this.lightTimer=new OnOffTimer();
+		this.lightTimer.on("stateChange",this.updateOutputs);
+
+		this.updateSettings();
+		this.updateOutputs();
+	}
+
+	updateOutputs=()=>{
+		this.relays[1].writeSync(!this.lightTimer.isOn());
+	}
+
+	updateSettings() {
+		try {
+			this.lightTimer.setDuration(this.settings.lightDuration);
+			this.lightTimer.setScheduleByText(this.settings.lightSchedule);
+		}
+
+		catch (e) {
+			console.log(e);
+		}
+	}
+
+	saveSettings() {
+		fs.writeFileSync(this.settingsFileName,JSON.stringify(this.settings,null,2));
+		console.log("settings saved");
 	}
 
 	updateStatus=()=>{
