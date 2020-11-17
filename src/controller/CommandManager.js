@@ -15,7 +15,8 @@ class CommandManager {
 	status(params) {
 		return {
 			"ok": 1,
-			"status": "ok"
+			"status": "ok",
+			"settings": this.mbr.settings
 		};
 	}
 
