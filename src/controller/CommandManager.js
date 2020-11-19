@@ -148,6 +148,17 @@ class CommandManager {
 			ok: 1
 		};
 	}
+
+	setTempValues(params) {
+		this.mbr.settings.lowTemp=Number(params.lowTemp);
+		this.mbr.settings.highTemp=Number(params.highTemp);
+		this.mbr.saveSettings();
+		this.mbr.updateHeating();
+
+		return {
+			ok: 1
+		};
+	}
 }
 
 module.exports=CommandManager;

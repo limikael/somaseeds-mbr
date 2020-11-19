@@ -4,26 +4,32 @@ class SchmittTrigger extends EventEmitter {
 	constructor() {
 		super();
 		this.state=false;
-
 		this.lowValue=0;
 		this.highValue=100;
-
+		this.value=0;
 	}
 
 	setValue(value) {
-		if (value>this.highValue)
-			this.setState(false);
-
-		if (value<this.lowValue)
-			this.setState(true);
+		this.value=value;
+		this.updateState();
 	}
 
 	setHighValue(highValue) {
-		this.highValue=highValue;
+		this.highValue=Number(highValue);
+		this.updateState();
 	}
 
 	setLowValue(lowValue) {
-		this.lowValue=lowValue;
+		this.lowValue=Number(lowValue);
+		this.updateState();
+	}
+
+	updateState() {
+		if (this.value>this.highValue)
+			this.setState(true);
+
+		if (this.value<this.lowValue)
+			this.setState(false);
 	}
 
 	setState(state) {
@@ -32,4 +38,10 @@ class SchmittTrigger extends EventEmitter {
 			this.emit("stateChange");
 		}
 	}
+
+	getState() {
+		return this.state;
+	}
 }
+
+module.exports=SchmittTrigger;

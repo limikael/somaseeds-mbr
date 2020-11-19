@@ -7,6 +7,7 @@ const DcMotor=require("../src/util/DcMotor.js");
 const i2cbus=require('i2c-bus');
 const Mcp23017=require("../src/util/Mcp23017.js");
 const OnOffTimer=require("../src/util/OnOffTimer.js");
+const SchmittTrigger=require("../src/util/SchmittTrigger.js");
 const fs=require("fs");
 
 class Mbr {
@@ -18,6 +19,7 @@ class Mbr {
 
 		this.sensorManager=new SensorManager(this.settings);
 		this.sensorManager.on("statusChange",this.updateStatus);
+		this.sensorManager.on("reading",this.updateHeating);
 
 		this.connectionBlinker=new Blinker(17);
 
@@ -53,6 +55,8 @@ class Mbr {
 		this.backwardTimer=new OnOffTimer();
 		this.backwardTimer.on("stateChange",this.updateOutputs);
 
+		this.tempTrigger=new SchmittTrigger();
+
 		this.updateSettings();
 		this.updateOutputs();
 	}
@@ -72,6 +76,9 @@ class Mbr {
 
 	updateSettings() {
 		try {
+			this.tempTrigger.setLowValue(this.settings.lowTemp);
+			this.tempTrigger.setHighValue(this.settings.highTemp);
+
 			this.lightTimer.setDuration(this.settings.lightDuration);
 			this.lightTimer.setScheduleByText(this.settings.lightSchedule);
 
@@ -104,6 +111,15 @@ class Mbr {
 
 		else
 			this.connectionBlinker.setBlinkPattern("x ");
+	}
+
+	updateHeating=()=>{
+		let temp=this.sensorManager.reading.temperature;
+		this.tempTrigger.setValue(temp);
+
+		console.log("temp: "+temp+" temp-trigger: "+this.tempTrigger.getState());
+
+		this.relays[0].writeSync(this.tempTrigger.getState());
 	}
 
 	run() {

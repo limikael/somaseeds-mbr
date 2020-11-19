@@ -41,6 +41,9 @@ class SensorManager extends EventEmitter {
 	makeReading=async ()=>{
 		try {
 			let reading=await this.readValues();
+			this.reading=reading;
+			this.emit("reading");
+
 			console.log("temp: "+reading.temperature+" humidity: "+reading.humidity+" phRaw: "+reading.phRaw);
 
 			await FetchUtil.postForm(this.settings.url,{
