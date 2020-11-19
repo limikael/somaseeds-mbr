@@ -39,10 +39,10 @@ class Mbr {
 		this.commandManager=new CommandManager(this);
 		this.apiProxy=new ApiProxy(this.commandManager);
 
-		this.restClient=new restbroker.Client({
-			url: this.settings.brokerUrl,
-			handler: this.apiProxy.handleCall
-		});
+		this.restClient=new restbroker.Client(this.apiProxy.handleCall);
+		this.restClient.setId("somaseeds1");
+		this.restClient.setKey(this.settings.apiKey)
+		this.restClient.connect(this.settings.brokerUrl);
 
 		this.restClient.on("stateChange",this.updateStatus);
 
