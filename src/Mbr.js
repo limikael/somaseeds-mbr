@@ -48,6 +48,10 @@ class Mbr {
 
 		this.lightTimer=new OnOffTimer();
 		this.lightTimer.on("stateChange",this.updateOutputs);
+		this.forwardTimer=new OnOffTimer();
+		this.forwardTimer.on("stateChange",this.updateOutputs);
+		this.backwardTimer=new OnOffTimer();
+		this.backwardTimer.on("stateChange",this.updateOutputs);
 
 		this.updateSettings();
 		this.updateOutputs();
@@ -55,12 +59,27 @@ class Mbr {
 
 	updateOutputs=()=>{
 		this.relays[1].writeSync(!this.lightTimer.isOn());
+
+		if (this.forwardTimer.isOn())
+			this.motor.setSpeed(1);
+
+		else if (this.backwardTimer.isOn())
+			this.motor.setSpeed(-1);
+
+		else
+			this.motor.setSpeed(0);
 	}
 
 	updateSettings() {
 		try {
 			this.lightTimer.setDuration(this.settings.lightDuration);
 			this.lightTimer.setScheduleByText(this.settings.lightSchedule);
+
+			this.forwardTimer.setDuration(this.settings.forwardDuration);
+			this.forwardTimer.setScheduleByText(this.settings.forwardSchedule);
+
+			this.backwardTimer.setDuration(this.settings.backwardDuration);
+			this.backwardTimer.setScheduleByText(this.settings.backwardSchedule);
 		}
 
 		catch (e) {

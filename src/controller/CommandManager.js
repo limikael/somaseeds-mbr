@@ -86,24 +86,53 @@ class CommandManager {
 		}
 
 		else {
-			let sched=later.parse.text(params.schedule);
-			if (sched.error>=0)
-				throw new Error("Unable to parse schedule expression, at pos "+sched.error);
-
-			let duration=Ms(params.duration);
-			if (duration===undefined || !duration)
-				throw new Error("Unable to parse duration.");
-
+			this.checkScheduleParams(params.schedule,params.duration);
 			this.mbr.settings.lightSchedule=params.schedule;
 			this.mbr.settings.lightDuration=params.duration;
 		}
 
 		this.mbr.updateSettings();
-		this.mbr.saveSettings(["lightSchedule","lightDuration"]);
+		this.mbr.saveSettings();
 
 		return {
 			ok: 1
 		};
+	}
+
+	motorSchedule(params) {
+		if (params.off) {
+			console.log("turning motor off");
+			this.mbr.settings.forwardSchedule="";
+			this.mbr.settings.forwardDuration="";
+			this.mbr.settings.backwardSchedule="";
+			this.mbr.settings.backwardDuration="";
+		}
+
+		else {
+			this.checkScheduleParams(params.forwardSchedule,params.forwardDuration);
+			this.checkScheduleParams(params.backwardSchedule,params.backwardDuration);
+			this.mbr.settings.forwardSchedule=params.forwardSchedule;
+			this.mbr.settings.forwardDuration=params.forwardDuration;
+			this.mbr.settings.backwardSchedule=params.backwardSchedule;
+			this.mbr.settings.backwardDuration=params.backwardDuration;
+		}
+
+		this.mbr.updateSettings();
+		this.mbr.saveSettings();
+
+		return {
+			ok: 1
+		};
+	}
+
+	checkScheduleParams(scheduleText, durationText) {
+		let schedule=later.parse.text(scheduleText);
+		if (schedule.error>=0)
+			throw new Error("Unable to parse schedule expression, at pos "+schedule.error);
+
+		let duration=Ms(durationText);
+		if (duration===undefined || !duration)
+			throw new Error("Unable to parse duration.");
 	}
 }
 
