@@ -17,20 +17,31 @@ class SensorManager extends EventEmitter {
 		return this.status;
 	}
 
+	async readValues() {
+		let dhtVals=await this.dhtSensor.read();
+		let phRaw=await this.mcp.read();
+
+		return {
+			temperature: dhtVals.temperature,
+			humidity: dhtVals.humidity,
+			ph: 0,
+			phRaw: phRaw
+		}
+	}
+
 	makeReading=async ()=>{
 		try {
-			let vals=await this.dhtSensor.read();
-			let ph=await this.mcp.read();
-			console.log("temp: "+vals.temperature+" humidity: "+vals.humidity+" ph: "+ph);
+			let reading=await this.readValues();
+			console.log("temp: "+reading.temperature+" humidity: "+reading.humidity+" phRaw: "+reading.phRaw);
 
 			await FetchUtil.postForm(this.settings.url,{
 				var: "temperature",
-				value: vals.temperature
+				value: reading.temperature
 			});
 
 			await FetchUtil.postForm(this.settings.url,{
 				var: "humidity",
-				value: vals.humidity
+				value: reading.humidity
 			});
 
 			this.status=true;

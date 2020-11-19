@@ -12,10 +12,11 @@ class CommandManager {
 			this.mbr.relays[i].writeSync(1);
 	}
 
-	status(params) {
+	async status(params) {
 		return {
 			"ok": 1,
 			"status": "ok",
+			"reading": await this.mbr.sensorManager.readValues(),
 			"settings": this.mbr.settings
 		};
 	}
