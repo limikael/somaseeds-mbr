@@ -56,6 +56,11 @@ class SensorManager extends EventEmitter {
 				value: reading.humidity
 			});
 
+			await FetchUtil.postForm(this.settings.url,{
+				var: "ph",
+				value: reading.ph
+			});
+
 			this.status=true;
 			this.emit("statusChange");
 		}
