@@ -135,6 +135,19 @@ class CommandManager {
 		if (duration===undefined || !duration)
 			throw new Error("Unable to parse duration.");
 	}
+
+	setPhCalibration(params) {
+		this.mbr.settings.phFirstRaw=Number(params.phFirstRaw);
+		this.mbr.settings.phFirstTranslated=Number(params.phFirstTranslated);
+		this.mbr.settings.phSecondRaw=Number(params.phSecondRaw);
+		this.mbr.settings.phSecondTranslated=Number(params.phSecondTranslated);
+		this.mbr.sensorManager.updateTranslator();
+		this.mbr.saveSettings();
+
+		return {
+			ok: 1
+		};
+	}
 }
 
 module.exports=CommandManager;

@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const DhtSensor=require("../util/DhtSensor.js");
 const FetchUtil=require("../util/FetchUtil.js");
 const Mcp=require("../util/Mcp.js");
+const LinearTranslator=require("../util/LinearTranslator.js");
 
 class SensorManager extends EventEmitter {
 	constructor(settings) {
@@ -11,6 +12,14 @@ class SensorManager extends EventEmitter {
 		this.dhtSensor=new DhtSensor(22,4);
 		this.mcp=new Mcp();
 		this.status=false;
+		this.translator=new LinearTranslator();
+
+		this.updateTranslator();
+	}
+
+	updateTranslator() {
+		this.translator.setFirstPoint(this.settings.phFirstRaw,this.settings.phFirstTranslated);
+		this.translator.setSecondPoint(this.settings.phSecondRaw,this.settings.phSecondTranslated);
 	}
 
 	getStatus() {
@@ -24,7 +33,7 @@ class SensorManager extends EventEmitter {
 		return {
 			temperature: dhtVals.temperature,
 			humidity: dhtVals.humidity,
-			ph: 0,
+			ph: this.translator.translate(phRaw),
 			phRaw: phRaw
 		}
 	}
