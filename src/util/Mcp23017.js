@@ -19,7 +19,7 @@ class Mcp23017 {
 
 		// Set all pins as output.
 		this.i2c.writeByteSync(this.devId,0x00,0x00);
-		this.updatePins();
+		//this.updatePins();
 	}
 
 	updatePins=()=>{

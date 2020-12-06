@@ -9,8 +9,8 @@ mcp.writeSync(1,1);
 mcp.writeSync(2,1);
 mcp.writeSync(3,1);
 
-mcp.writeSync(0,0);
-mcp.writeSync(2,0);
+/*mcp.writeSync(0,0);
+mcp.writeSync(2,0);*/
 
 /*let pin=mcp.createGPIO(1,'output');
 pin.writeSync(1);*/

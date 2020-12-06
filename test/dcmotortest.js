@@ -6,3 +6,5 @@ let port=new Mcp23017(i2c,0x21);
 
 port.writeSync(0,0);
 port.writeSync(1,0);
+port.writeSync(2,0);
+port.writeSync(3,0);

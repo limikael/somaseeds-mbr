@@ -9,6 +9,7 @@ const Mcp23017=require("../src/util/Mcp23017.js");
 const OnOffTimer=require("../src/util/OnOffTimer.js");
 const SchmittTrigger=require("../src/util/SchmittTrigger.js");
 const fs=require("fs");
+const PromiseUtil=require("../src/util/PromiseUtil.js");
 
 class Mbr {
 	constructor(settingsFileName) {
@@ -37,6 +38,8 @@ class Mbr {
 			motorMcp.createGPIO(0,'output'),
 			motorMcp.createGPIO(1,'output')
 		);
+
+		this.fan=motorMcp.createGPIO(3,'output');
 
 		this.commandManager=new CommandManager(this);
 		this.apiProxy=new ApiProxy(this.commandManager);
@@ -113,13 +116,18 @@ class Mbr {
 			this.connectionBlinker.setBlinkPattern("x ");
 	}
 
-	updateHeating=()=>{
+	updateHeating=async ()=>{
 		let temp=this.sensorManager.reading.temperature;
 		this.tempTrigger.setValue(temp);
 
-		console.log("temp: "+temp+" temp-trigger: "+this.tempTrigger.getState());
-
 		this.relays[0].writeSync(this.tempTrigger.getState());
+
+		await PromiseUtil.delay(100);
+
+		let fanVal=!this.tempTrigger.getState();
+		this.fan.writeSync(fanVal);
+
+		console.log("temp: "+temp+" temp-trigger: "+this.tempTrigger.getState()+" fan: "+fanVal);
 	}
 
 	run() {
