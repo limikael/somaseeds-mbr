@@ -1,141 +1,87 @@
-const Blinker=require("./util/Blinker.js");
-const SensorManager=require("./controller/SensorManager.js");
+const ReactiveBlinker=require("./reactive/ReactiveBlinker.js");
 const CommandManager=require("./controller/CommandManager.js");
+const ApiProxy=require("./util/ApiProxy.js");
 const restbroker=require("restbroker");
-const ApiProxy=require("./util/ApiProxy");
-const DcMotor=require("../src/util/DcMotor.js");
-const i2cbus=require('i2c-bus');
-const Mcp23017=require("../src/util/Mcp23017.js");
-const OnOffTimer=require("../src/util/OnOffTimer.js");
-const SchmittTrigger=require("../src/util/SchmittTrigger.js");
+const ReactiveValue=require("./reactive/ReactiveValue.js");
+const ReactiveExpression=require("./reactive/ReactiveExpression.js");
 const fs=require("fs");
-const PromiseUtil=require("../src/util/PromiseUtil.js");
+const ReactiveConsole=require("./reactive/ReactiveConsole.js");
+const ReactiveDhtSensor=require("./reactive/ReactiveDhtSensor.js");
+const ReactiveMcp23017=require("./reactive/ReactiveMcp23017.js");
+const ReactiveDcMotor=require("./reactive/ReactiveDcMotor.js");
+const ReactiveUtil=require("./reactive/ReactiveUtil.js");
+const i2cbus=require('i2c-bus');
 
 class Mbr {
 	constructor(settingsFileName) {
-		console.log("Loading settings from: "+settingsFileName);
 		this.settingsFileName=settingsFileName;
-
 		this.settings=JSON.parse(fs.readFileSync(this.settingsFileName));
-
-		this.sensorManager=new SensorManager(this.settings);
-		this.sensorManager.on("statusChange",this.updateStatus);
-		this.sensorManager.on("reading",this.updateHeating);
-
-		this.connectionBlinker=new Blinker(17);
-
-		this.i2c=i2cbus.openSync(1);
-		let relayMcp=new Mcp23017(this.i2c,0x20);
-		this.relays=[
-			relayMcp.createGPIO(0,'output'),
-			relayMcp.createGPIO(1,'output'),
-			relayMcp.createGPIO(2,'output'),
-			relayMcp.createGPIO(3,'output')
-		];
-
-		let motorMcp=new Mcp23017(this.i2c,0x21);
-		this.motor=new DcMotor(
-			motorMcp.createGPIO(0,'output'),
-			motorMcp.createGPIO(1,'output')
-		);
-
-		this.fan=motorMcp.createGPIO(3,'output');
 
 		this.commandManager=new CommandManager(this);
 		this.apiProxy=new ApiProxy(this.commandManager);
-
 		this.restClient=new restbroker.Client(this.apiProxy.handleCall);
 		this.restClient.setId("somaseeds1");
 		this.restClient.setKey(this.settings.apiKey)
 		this.restClient.connect(this.settings.brokerUrl);
 
-		this.restClient.on("stateChange",this.updateStatus);
+		this.restStatus=new ReactiveValue('boolean');
+		this.restStatus.set(this.restClient.isConnected());
+		this.restClient.on("stateChange",()=>{
+			this.restStatus.set(this.restClient.isConnected());
+		});
 
-		this.lightTimer=new OnOffTimer();
-		this.lightTimer.on("stateChange",this.updateOutputs);
-		this.forwardTimer=new OnOffTimer();
-		this.forwardTimer.on("stateChange",this.updateOutputs);
-		this.backwardTimer=new OnOffTimer();
-		this.backwardTimer.on("stateChange",this.updateOutputs);
+		this.blinkPattern=new ReactiveExpression((restStatus)=>{
+			if (restStatus)
+				return "x                   ";
 
-		this.tempTrigger=new SchmittTrigger();
+			return "x ";
+		});
+		this.blinkPattern.param(0).connect(this.restStatus);
 
-		this.updateSettings();
-		this.updateOutputs();
-	}
+		this.blinker=new ReactiveBlinker(17);
+		this.blinker.pattern.connect(this.blinkPattern);
 
-	updateOutputs=()=>{
-		this.relays[1].writeSync(!this.lightTimer.isOn());
+		this.dhtSensor=new ReactiveDhtSensor(22,4,1000);
 
-		if (this.forwardTimer.isOn())
-			this.motor.setSpeed(1);
+		this.heater=new ReactiveValue('boolean');
+		this.light=new ReactiveValue('boolean');
 
-		else if (this.backwardTimer.isOn())
-			this.motor.setSpeed(-1);
+		this.i2c=i2cbus.openSync(1);
+		this.relayMcp=new ReactiveMcp23017(this.i2c,0x20);
+		this.relayMcp.pin(0).connect(ReactiveUtil.invert(this.heater));
+		this.relayMcp.pin(1).connect(ReactiveUtil.invert(this.light));
+		this.relayMcp.pin(2).set(1);
+		this.relayMcp.pin(3).set(1);
 
-		else
-			this.motor.setSpeed(0);
-	}
+		this.motorMcp=new ReactiveMcp23017(this.i2c,0x21);
+		this.pumpMotor=new ReactiveDcMotor(this.motorMcp.pin(0),this.motorMcp.pin(1));
+		this.fanMotor=new ReactiveDcMotor(this.motorMcp.pin(2),this.motorMcp.pin(3));
 
-	updateSettings() {
-		try {
-			this.tempTrigger.setLowValue(this.settings.lowTemp);
-			this.tempTrigger.setHighValue(this.settings.highTemp);
-
-			this.lightTimer.setDuration(this.settings.lightDuration);
-			this.lightTimer.setScheduleByText(this.settings.lightSchedule);
-
-			this.forwardTimer.setDuration(this.settings.forwardDuration);
-			this.forwardTimer.setScheduleByText(this.settings.forwardSchedule);
-
-			this.backwardTimer.setDuration(this.settings.backwardDuration);
-			this.backwardTimer.setScheduleByText(this.settings.backwardSchedule);
+		this.manualControls={
+			light: new ReactiveValue('boolean'),
+			heater: new ReactiveValue('boolean'),
+			pump: new ReactiveValue('number-not-nan'),
+			fan: new ReactiveValue('number-not-nan')
 		}
 
-		catch (e) {
-			console.log(e);
-		}
-	}
-
-	saveSettings() {
-		fs.writeFileSync(this.settingsFileName,JSON.stringify(this.settings,null,2));
-		console.log("settings saved");
-	}
-
-	updateStatus=()=>{
-		console.log("update status"
-			+", rest: "+this.restClient.isConnected()
-			+", sensors: "+this.sensorManager.getStatus());
-
-		let status=(this.restClient.isConnected() && this.sensorManager.getStatus());
-
-		if (status)
-			this.connectionBlinker.setBlinkPattern("x                    ");
-
-		else
-			this.connectionBlinker.setBlinkPattern("x ");
-	}
-
-	updateHeating=async ()=>{
-		let temp=this.sensorManager.reading.temperature;
-		this.tempTrigger.setValue(temp);
-
-		this.relays[0].writeSync(this.tempTrigger.getState());
-
-		await PromiseUtil.delay(100);
-
-		let fanVal=!this.tempTrigger.getState();
-		this.fan.writeSync(fanVal);
-
-		console.log("temp: "+temp+" temp-trigger: "+this.tempTrigger.getState()+" fan: "+fanVal);
+		this.light.connect(this.manualControls.light);
+		this.heater.connect(this.manualControls.heater);
+		this.pumpMotor.direction.connect(this.manualControls.pump);
+		this.fanMotor.direction.connect(this.manualControls.fan);
 	}
 
 	run() {
 		console.log("**** Starting the MBR. ****");
 
-		this.sensorManager.run();
-
-		this.updateStatus();
+		this.console=new ReactiveConsole("OpenSeeds MBR");
+		this.console.addWatch("REST Connection: ",this.restStatus);
+		this.console.addWatch("Temperature:",this.dhtSensor.temperature);
+		this.console.addWatch("Humidity:",this.dhtSensor.humidity);
+		this.console.addWatch("Sensor Error:",this.dhtSensor.error);
+		this.console.addWatch("Manual Light:",this.manualControls.light);
+		this.console.addWatch("Manual Heater:",this.manualControls.heater);
+		this.console.addWatch("Manual Pump:",this.manualControls.pump);
+		this.console.addWatch("Manual Fan:",this.manualControls.fan);
 	}
 }
 
