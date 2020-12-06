@@ -16,10 +16,17 @@ class ReactiveDhtSensor {
 
 	makeReading=()=>{
 		sensor.read(this.type,this.pin,(err, temperature, humidity)=>{
-			this.temperature.set(temperature);
-			this.humidity.set(humidity);
-			this.error.set(err);
+			if (err) {
+				this.temperature.set(undefined);
+				this.humidity.set(undefined);
+			}
 
+			else {
+				this.temperature.set(temperature);
+				this.humidity.set(humidity);
+			}
+
+			this.error.set(err);
 			setTimeout(this.makeReading,this.freq);
 		});
 	}

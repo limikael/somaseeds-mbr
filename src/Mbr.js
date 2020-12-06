@@ -9,7 +9,8 @@ const ReactiveConsole=require("./reactive/ReactiveConsole.js");
 const ReactiveDhtSensor=require("./reactive/ReactiveDhtSensor.js");
 const ReactiveMcp23017=require("./reactive/ReactiveMcp23017.js");
 const ReactiveDcMotor=require("./reactive/ReactiveDcMotor.js");
-const ReactiveUtil=require("./reactive/ReactiveUtil.js");
+const ReactiveOp=require("./reactive/ReactiveOp");
+const ReactiveLogger=require("./reactive/ReactiveLogger.js");
 const i2cbus=require('i2c-bus');
 
 class Mbr {
@@ -30,17 +31,6 @@ class Mbr {
 			this.restStatus.set(this.restClient.isConnected());
 		});
 
-		this.blinkPattern=new ReactiveExpression((restStatus)=>{
-			if (restStatus)
-				return "x                   ";
-
-			return "x ";
-		});
-		this.blinkPattern.param(0).connect(this.restStatus);
-
-		this.blinker=new ReactiveBlinker(17);
-		this.blinker.pattern.connect(this.blinkPattern);
-
 		this.dhtSensor=new ReactiveDhtSensor(22,4,1000);
 
 		this.heater=new ReactiveValue('boolean');
@@ -48,14 +38,42 @@ class Mbr {
 
 		this.i2c=i2cbus.openSync(1);
 		this.relayMcp=new ReactiveMcp23017(this.i2c,0x20);
-		this.relayMcp.pin(0).connect(ReactiveUtil.invert(this.heater));
-		this.relayMcp.pin(1).connect(ReactiveUtil.invert(this.light));
+		this.relayMcp.pin(0).connect(ReactiveOp.not(this.heater));
+		this.relayMcp.pin(1).connect(ReactiveOp.not(this.light));
 		this.relayMcp.pin(2).set(1);
 		this.relayMcp.pin(3).set(1);
 
 		this.motorMcp=new ReactiveMcp23017(this.i2c,0x21);
 		this.pumpMotor=new ReactiveDcMotor(this.motorMcp.pin(0),this.motorMcp.pin(1));
 		this.fanMotor=new ReactiveDcMotor(this.motorMcp.pin(2),this.motorMcp.pin(3));
+
+		this.temperatureLogger=new ReactiveLogger(this.settings.url);
+		this.temperatureLogger.setData("var","temperature");
+		this.temperatureLogger.setData("value",this.dhtSensor.temperature);
+
+		this.humitidyLogger=new ReactiveLogger(this.settings.url);
+		this.humitidyLogger.setData("var","humidity");
+		this.humitidyLogger.setData("value",this.dhtSensor.humidity);
+
+		this.status=ReactiveOp.and(
+			this.restStatus,
+			ReactiveOp.not(this.dhtSensor.error),
+			ReactiveOp.not(this.temperatureLogger.error),
+			ReactiveOp.not(this.humitidyLogger.error)
+		);
+
+		this.blinkPattern=new ReactiveExpression((status)=>{
+				if (status)
+					return "x                   ";
+
+				return "x ";
+			}
+		);
+
+		this.blinkPattern.param(0).connect(this.status);
+
+		this.blinker=new ReactiveBlinker(17);
+		this.blinker.pattern.connect(this.blinkPattern);
 
 		this.manualControls={
 			light: new ReactiveValue('boolean'),
@@ -74,7 +92,8 @@ class Mbr {
 		console.log("**** Starting the MBR. ****");
 
 		this.console=new ReactiveConsole("OpenSeeds MBR");
-		this.console.addWatch("REST Connection: ",this.restStatus);
+		this.console.addWatch("Status: ",this.status);
+		this.console.addWatch("REST Conn: ",this.restStatus);
 		this.console.addWatch("Temperature:",this.dhtSensor.temperature);
 		this.console.addWatch("Humidity:",this.dhtSensor.humidity);
 		this.console.addWatch("Sensor Error:",this.dhtSensor.error);
