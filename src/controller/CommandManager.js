@@ -22,6 +22,7 @@ class CommandManager {
 			heater: this.mbr.manualControls.heater.get(),
 			pump: this.mbr.manualControls.pump.get(),
 			fan: this.mbr.manualControls.fan.get(),
+			debugTemp: this.mbr.manualControls.debugTemp.get(),
 			ok: 1
 		}
 	}

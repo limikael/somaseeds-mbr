@@ -79,8 +79,11 @@ class Mbr {
 			light: new ReactiveValue('boolean'),
 			heater: new ReactiveValue('boolean'),
 			pump: new ReactiveValue('number-not-nan'),
-			fan: new ReactiveValue('number-not-nan')
-		}
+			fan: new ReactiveValue('number-not-nan'),
+			debugTemp: new ReactiveValue()
+		};
+
+		this.manualControls.debugTemp.set(28);
 
 		this.light.connect(this.manualControls.light);
 		this.heater.connect(this.manualControls.heater);
@@ -101,6 +104,7 @@ class Mbr {
 		this.console.addWatch("Manual Heater:",this.manualControls.heater);
 		this.console.addWatch("Manual Pump:",this.manualControls.pump);
 		this.console.addWatch("Manual Fan:",this.manualControls.fan);
+		this.console.addWatch("Debug Temp:",this.manualControls.debugTemp);
 	}
 }
 
