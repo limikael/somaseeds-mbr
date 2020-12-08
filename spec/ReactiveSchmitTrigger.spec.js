@@ -1,6 +1,6 @@
 const ReactiveSchmittTrigger=require("../src/reactive/ReactiveSchmittTrigger");
 
-describe("v",()=>{
+describe("ReactiveSchmittTrigger",()=>{
 	it("triggers",()=>{
 		let trigger=new ReactiveSchmittTrigger();
 		expect(trigger.get()).toBe(undefined);

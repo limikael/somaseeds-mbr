@@ -1,22 +1,32 @@
-const ReactiveBlinker=require("./reactive/ReactiveBlinker.js");
-const CommandManager=require("./controller/CommandManager.js");
-const ApiProxy=require("./util/ApiProxy.js");
+const ReactiveBlinker=require("./reactive/ReactiveBlinker");
+const CommandManager=require("./controller/CommandManager");
+const ApiProxy=require("./util/ApiProxy");
 const restbroker=require("restbroker");
-const ReactiveValue=require("./reactive/ReactiveValue.js");
-const ReactiveExpression=require("./reactive/ReactiveExpression.js");
-const fs=require("fs");
-const ReactiveConsole=require("./reactive/ReactiveConsole.js");
-const ReactiveDhtSensor=require("./reactive/ReactiveDhtSensor.js");
-const ReactiveMcp23017=require("./reactive/ReactiveMcp23017.js");
-const ReactiveDcMotor=require("./reactive/ReactiveDcMotor.js");
+const ReactiveValue=require("./reactive/ReactiveValue");
+const ReactiveExpression=require("./reactive/ReactiveExpression");
+const ReactiveConsole=require("./reactive/ReactiveConsole");
+const ReactiveDhtSensor=require("./reactive/ReactiveDhtSensor");
+const ReactiveMcp23017=require("./reactive/ReactiveMcp23017");
+const ReactiveDcMotor=require("./reactive/ReactiveDcMotor");
 const ReactiveOp=require("./reactive/ReactiveOp");
-const ReactiveLogger=require("./reactive/ReactiveLogger.js");
+const ReactiveLogger=require("./reactive/ReactiveLogger");
+const ReactiveScheduleTimer=require("./reactive/ReactiveScheduleTimer");
+const ReactiveSchmittTrigger=require("./reactive/ReactiveSchmittTrigger");
+const ReactiveConfig=require("./reactive/ReactiveConfig");
 const i2cbus=require('i2c-bus');
 
 class Mbr {
 	constructor(settingsFileName) {
-		this.settingsFileName=settingsFileName;
-		this.settings=JSON.parse(fs.readFileSync(this.settingsFileName));
+		let reactiveSettings=[
+			"lightSchedule","lightDuration",
+			"forwardSchedule","forwardDuration",
+			"backwardSchedule","backwardDuration",
+			"phFirstRaw","phFirstTranslated",
+			"phSecondRaw","phSecondTranslated",
+			"lowTemp","highTemp"
+		];
+
+		this.settings=new ReactiveConfig(settingsFileName,reactiveSettings);
 
 		this.commandManager=new CommandManager(this);
 		this.apiProxy=new ApiProxy(this.commandManager);
@@ -83,12 +93,59 @@ class Mbr {
 			debugTemp: new ReactiveValue()
 		};
 
-		this.manualControls.debugTemp.set(28);
+		this.manualControls.debugTemp.set(29);
 
-		this.light.connect(this.manualControls.light);
-		this.heater.connect(this.manualControls.heater);
-		this.pumpMotor.direction.connect(this.manualControls.pump);
-		this.fanMotor.direction.connect(this.manualControls.fan);
+		// Timers and logic.
+		this.lightTimer=new ReactiveScheduleTimer();
+		this.lightTimer.schedule.connect(this.settings.lightSchedule);
+		this.lightTimer.duration.connect(this.settings.lightDuration);
+
+		this.forwardTimer=new ReactiveScheduleTimer();
+		this.forwardTimer.schedule.connect(this.settings.forwardSchedule);
+		this.forwardTimer.duration.connect(this.settings.forwardDuration);
+
+		this.backwardTimer=new ReactiveScheduleTimer();
+		this.backwardTimer.schedule.connect(this.settings.backwardSchedule);
+		this.backwardTimer.duration.connect(this.settings.backwardDuration);
+
+		this.pumpMotorDirection=new ReactiveExpression((forward,backward)=>{
+			if (forward)
+				return 1;
+
+			if (backward)
+				return -1;
+
+			return 0;
+		});
+		this.pumpMotorDirection.param(0).connect(this.forwardTimer);
+		this.pumpMotorDirection.param(1).connect(this.backwardTimer);
+
+		this.tempStatus=new ReactiveSchmittTrigger();
+		this.tempStatus.high.connect(this.settings.highTemp);
+		this.tempStatus.low.connect(this.settings.lowTemp);
+		//this.tempStatus.input.connect(this.manualControls.debugTemp);
+		this.tempStatus.input.connect(this.dhtSensor.temperature);
+
+		// Auto controls.
+		this.pumpMotor.direction.connect(this.pumpMotorDirection);
+		this.light.connect(this.lightTimer);
+
+		this.heater.connect(ReactiveOp.not(this.tempStatus));
+		this.fanMotorDirection=new ReactiveExpression((heater)=>{
+			if (heater)
+				return 1;
+
+			else
+				return 0;
+		});
+		this.fanMotorDirection.param(0).connect(this.heater);
+		this.fanMotor.direction.connect(this.fanMotorDirection);
+
+		// Manual controls.
+		//this.light.connect(this.manualControls.light);
+		//this.pumpMotor.direction.connect(this.manualControls.pump);
+		//this.heater.connect(this.manualControls.heater);
+		//this.fanMotor.direction.connect(this.manualControls.fan);
 	}
 
 	run() {
@@ -105,6 +162,10 @@ class Mbr {
 		this.console.addWatch("Manual Pump:",this.manualControls.pump);
 		this.console.addWatch("Manual Fan:",this.manualControls.fan);
 		this.console.addWatch("Debug Temp:",this.manualControls.debugTemp);
+		this.console.addWatch("Light Timer:",this.lightTimer);
+		this.console.addWatch("Light Err:",this.lightTimer.error);
+		this.console.addWatch("Temp Status:",this.tempStatus);
+		this.console.addWatch("Heater:",this.heater);
 	}
 }
 
