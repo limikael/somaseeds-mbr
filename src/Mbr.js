@@ -5,6 +5,7 @@ const restbroker=require("restbroker");
 const ReactiveValue=require("./reactive/ReactiveValue");
 const ReactiveExpression=require("./reactive/ReactiveExpression");
 const ReactiveConsole=require("./reactive/ReactiveConsole");
+const ReactiveConsoleLogger=require("./reactive/ReactiveConsoleLogger");
 const ReactiveDhtSensor=require("./reactive/ReactiveDhtSensor");
 const ReactiveMcp23017=require("./reactive/ReactiveMcp23017");
 const ReactiveDcMotor=require("./reactive/ReactiveDcMotor");
@@ -15,7 +16,6 @@ const ReactiveSchmittTrigger=require("./reactive/ReactiveSchmittTrigger");
 const ReactiveConfig=require("./reactive/ReactiveConfig");
 const ReactiveAdConverter=require("./reactive/ReactiveAdConverter");
 const ReactiveLinearTranslator=require("./reactive/ReactiveLinearTranslator");
-
 const i2cbus=require('i2c-bus');
 
 class Mbr {
@@ -175,8 +175,10 @@ class Mbr {
 				if (mode=="manual")
 					return manualHeater;
 
-				else
-					return !tempStatus;
+				if (tempStatus===undefined)
+					return false;
+
+				return !tempStatus;
 			},
 			this.settings.mode,
 			this.manualControls.heater,
@@ -199,17 +201,18 @@ class Mbr {
 	run() {
 		console.log("**** Starting the MBR. ****");
 
-		this.console=new ReactiveConsole("OpenSeeds MBR");
+//		this.console=new ReactiveConsole("OpenSeeds MBR");
+		this.console=new ReactiveConsoleLogger("OpenSeeds MBR");
 		this.console.addWatch("Status: ",this.status);
 		this.console.addWatch("Control Mode: ",this.settings.mode);
 		this.console.addWatch("REST Conn: ",this.restStatus);
-		this.console.addWatch("Temperature:",this.dhtSensor.temperature);
-		this.console.addWatch("Humidity:",this.dhtSensor.humidity);
-		this.console.addWatch("Sensor Error:",this.dhtSensor.error);
-		this.console.addWatch("Heater On:",this.heater);
-		this.console.addWatch("Termostat Temp:",this.tempStatus.input);
-		this.console.addWatch("pH Raw:",this.adConverter.value);
-		this.console.addWatch("pH:",this.phTranslator);
+		this.console.addWatch("Temperature: ",this.dhtSensor.temperature);
+		this.console.addWatch("Humidity: ",this.dhtSensor.humidity);
+		this.console.addWatch("Sensor Error: ",this.dhtSensor.error);
+		this.console.addWatch("Heater On: ",this.heater);
+		this.console.addWatch("Termostat Temp: ",this.tempStatus.input);
+/*		this.console.addWatch("pH Raw:",this.adConverter.value);
+		this.console.addWatch("pH:",this.phTranslator);*/
 	}
 }
 
