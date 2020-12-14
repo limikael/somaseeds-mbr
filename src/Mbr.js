@@ -13,6 +13,9 @@ const ReactiveLogger=require("./reactive/ReactiveLogger");
 const ReactiveScheduleTimer=require("./reactive/ReactiveScheduleTimer");
 const ReactiveSchmittTrigger=require("./reactive/ReactiveSchmittTrigger");
 const ReactiveConfig=require("./reactive/ReactiveConfig");
+const ReactiveAdConverter=require("./reactive/ReactiveAdConverter");
+const ReactiveLinearTranslator=require("./reactive/ReactiveLinearTranslator");
+
 const i2cbus=require('i2c-bus');
 
 class Mbr {
@@ -23,7 +26,7 @@ class Mbr {
 			"backwardSchedule","backwardDuration",
 			"phFirstRaw","phFirstTranslated",
 			"phSecondRaw","phSecondTranslated",
-			"lowTemp","highTemp"
+			"lowTemp","highTemp","mode"
 		];
 
 		this.settings=new ReactiveConfig(settingsFileName,reactiveSettings);
@@ -40,6 +43,9 @@ class Mbr {
 		this.restClient.on("stateChange",()=>{
 			this.restStatus.set(this.restClient.isConnected());
 		});
+
+		// Sensors and output
+		this.adConverter=new ReactiveAdConverter(0);
 
 		this.dhtSensor=new ReactiveDhtSensor(22,4,1000);
 
@@ -108,44 +114,86 @@ class Mbr {
 		this.backwardTimer.schedule.connect(this.settings.backwardSchedule);
 		this.backwardTimer.duration.connect(this.settings.backwardDuration);
 
-		this.pumpMotorDirection=new ReactiveExpression((forward,backward)=>{
-			if (forward)
-				return 1;
-
-			if (backward)
-				return -1;
-
-			return 0;
-		});
-		this.pumpMotorDirection.param(0).connect(this.forwardTimer);
-		this.pumpMotorDirection.param(1).connect(this.backwardTimer);
-
 		this.tempStatus=new ReactiveSchmittTrigger();
 		this.tempStatus.high.connect(this.settings.highTemp);
 		this.tempStatus.low.connect(this.settings.lowTemp);
-		//this.tempStatus.input.connect(this.manualControls.debugTemp);
-		this.tempStatus.input.connect(this.dhtSensor.temperature);
+		this.tempStatus.input.connect(ReactiveOp.expr(
+			(mode,sensorTemp,debugTemp)=>{
+				if (mode=="autodebug")
+					return debugTemp;
 
-		// Auto controls.
-		this.pumpMotor.direction.connect(this.pumpMotorDirection);
-		this.light.connect(this.lightTimer);
+				else
+					return sensorTemp;
+			},
+			this.settings.mode,
+			this.dhtSensor.temperature,
+			this.manualControls.debugTemp
+		));
 
-		this.heater.connect(ReactiveOp.not(this.tempStatus));
-		this.fanMotorDirection=new ReactiveExpression((heater)=>{
-			if (heater)
-				return 1;
+		this.phTranslator=new ReactiveLinearTranslator();
+		this.phTranslator.input.connect(this.adConverter.value);
+		this.phTranslator.measuredOne.connect(this.settings.phFirstRaw);
+		this.phTranslator.measuredTwo.connect(this.settings.phSecondRaw);
+		this.phTranslator.translatedOne.connect(this.settings.phFirstTranslated);
+		this.phTranslator.translatedTwo.connect(this.settings.phSecondTranslated);
 
-			else
+		// Hook up controls.
+		this.light.connect(ReactiveOp.expr(
+			(mode, manualLight, lightTimer)=>{
+				if (mode=="manual")
+					return manualLight;
+
+				else
+					return lightTimer;
+			},
+			this.settings.mode,
+			this.manualControls.light,
+			this.lightTimer
+		));
+
+		this.pumpMotor.direction.connect(ReactiveOp.expr(
+			(mode, manualPump, forward, backward)=>{
+				if (mode=="manual")
+					return manualPump;
+
+				if (forward)
+					return 1;
+
+				if (backward)
+					return -1;
+
 				return 0;
-		});
-		this.fanMotorDirection.param(0).connect(this.heater);
-		this.fanMotor.direction.connect(this.fanMotorDirection);
+			},
+			this.settings.mode,
+			this.manualControls.pump,
+			this.forwardTimer,
+			this.backwardTimer
+		));
 
-		// Manual controls.
-		//this.light.connect(this.manualControls.light);
-		//this.pumpMotor.direction.connect(this.manualControls.pump);
-		//this.heater.connect(this.manualControls.heater);
-		//this.fanMotor.direction.connect(this.manualControls.fan);
+		this.heater.connect(ReactiveOp.expr(
+			(mode, manualHeater, tempStatus)=>{
+				if (mode=="manual")
+					return manualHeater;
+
+				else
+					return !tempStatus;
+			},
+			this.settings.mode,
+			this.manualControls.heater,
+			this.tempStatus
+		));
+
+		this.fanMotor.direction.connect(ReactiveOp.expr(
+			(mode, manualFan, heater)=>{
+				if (mode=="manual")
+					return manualFan;
+
+				return heater;
+			},
+			this.settings.mode,
+			this.manualControls.fan,
+			this.heater
+		));
 	}
 
 	run() {
@@ -153,19 +201,15 @@ class Mbr {
 
 		this.console=new ReactiveConsole("OpenSeeds MBR");
 		this.console.addWatch("Status: ",this.status);
+		this.console.addWatch("Control Mode: ",this.settings.mode);
 		this.console.addWatch("REST Conn: ",this.restStatus);
 		this.console.addWatch("Temperature:",this.dhtSensor.temperature);
 		this.console.addWatch("Humidity:",this.dhtSensor.humidity);
 		this.console.addWatch("Sensor Error:",this.dhtSensor.error);
-		this.console.addWatch("Manual Light:",this.manualControls.light);
-		this.console.addWatch("Manual Heater:",this.manualControls.heater);
-		this.console.addWatch("Manual Pump:",this.manualControls.pump);
-		this.console.addWatch("Manual Fan:",this.manualControls.fan);
-		this.console.addWatch("Debug Temp:",this.manualControls.debugTemp);
-		this.console.addWatch("Light Timer:",this.lightTimer);
-		this.console.addWatch("Light Err:",this.lightTimer.error);
-		this.console.addWatch("Temp Status:",this.tempStatus);
-		this.console.addWatch("Heater:",this.heater);
+		this.console.addWatch("Heater On:",this.heater);
+		this.console.addWatch("Termostat Temp:",this.tempStatus.input);
+		this.console.addWatch("pH Raw:",this.adConverter.value);
+		this.console.addWatch("pH:",this.phTranslator);
 	}
 }
 

@@ -42,6 +42,31 @@ class ReactiveOp {
 
 		return result;
 	}
+
+	static if(expr, thenVal, elseVal) {
+		let result=new ReactiveExpression((expr,thenVal,elseVal)=>{
+			if (expr)
+				return thenVal;
+
+			else
+				return elseVal;
+		});
+
+		result.param(0).connect(expr);
+		result.param(1).connect(thenVal);
+		result.param(2).connect(elseVal);
+
+		return result;
+	}
+
+	static expr(func, ...sources) {
+		let result=new ReactiveExpression(func);
+
+		for (let i=0; i<sources.length; i++)
+			result.param(i).connect(sources[i]);
+
+		return result;
+	}
 }
 
 module.exports=ReactiveOp;

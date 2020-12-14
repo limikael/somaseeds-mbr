@@ -34,7 +34,7 @@ class ReactiveMcp23017 {
 		val=val;
 		this.dirty=false;
 
-		this.i2c.writeByteSync(this.devId,0x00,0x00);
+		//this.i2c.writeByteSync(this.devId,0x00,0x00);
 		this.i2c.writeByteSync(this.devId,0x14,val);
 	}
 

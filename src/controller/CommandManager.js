@@ -3,19 +3,6 @@ class CommandManager {
 		this.mbr=mbr;
 	}
 
-	manual(params) {
-		let control=params._[0];
-
-		if (!this.mbr.manualControls[control])
-			throw new Error("No such manualcontrol");
-
-		this.mbr.manualControls[control].set(params.value);
-
-		return {
-			ok: 1
-		};
-	}
-
 	setting(params) {
 		let reactiveNames=[
 			"lightSchedule","lightDuration",
@@ -23,12 +10,20 @@ class CommandManager {
 			"backwardSchedule","backwardDuration",
 			"phFirstRaw","phFirstTranslated",
 			"phSecondRaw","phSecondTranslated",
-			"lowTemp","highTemp"
+			"lowTemp","highTemp","mode"
 		];
 
 		for (let reactiveName of reactiveNames)
 			if (params.hasOwnProperty(reactiveName))
 				this.mbr.settings[reactiveName].set(params[reactiveName]);
+
+		let manualNames=[
+			"light","heater","pump","fan","debugTemp"
+		];
+
+		for (let manualName of manualNames)
+			if (params.hasOwnProperty(manualName))
+				this.mbr.manualControls[manualName].set(params[manualName]);
 
 		return {
 			ok: 1
@@ -42,7 +37,7 @@ class CommandManager {
 			"backwardSchedule","backwardDuration",
 			"phFirstRaw","phFirstTranslated",
 			"phSecondRaw","phSecondTranslated",
-			"lowTemp","highTemp"
+			"lowTemp","highTemp","mode"
 		];
 
 		let status={
@@ -51,6 +46,13 @@ class CommandManager {
 			pump: this.mbr.manualControls.pump.get(),
 			fan: this.mbr.manualControls.fan.get(),
 			debugTemp: this.mbr.manualControls.debugTemp.get(),
+
+			temperature: this.mbr.dhtSensor.temperature.get(),
+			humidity: this.mbr.dhtSensor.humidity.get(),
+
+			ph: this.mbr.phTranslator.get(),
+			phRaw: this.mbr.adConverter.value.get(),
+
 			ok: 1
 		};
 
