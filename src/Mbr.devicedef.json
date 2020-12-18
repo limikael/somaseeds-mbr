@@ -1,0 +1,126 @@
+{
+	"mode": {
+		"type": "select",
+		"name": "Mode",
+		"options": {
+			"manual": "Manual",
+			"auto": "Auto",
+			"autodebug": "Auto debug"
+		},
+		"tab": "Settings",
+		"persist": true
+	},
+
+	"manualLight": {
+		"type": "select",
+		"name": "Light",
+		"options": {
+			"false": "Off",
+			"true": "On"
+		},
+		"conditionKey": "mode",
+		"conditionValue": "manual",
+		"tab": "Settings"
+	},
+
+	"manualHeater": {
+		"type": "select",
+		"name": "Heater",
+		"options": {
+			"false": "Off",
+			"true": "On"
+		},
+		"conditionKey": "mode",
+		"conditionValue": "manual",
+		"tab": "Settings"
+	},
+
+	"manualFan": {
+		"type": "select",
+		"name": "Fan",
+		"options": {
+			"0": "0",
+			"1": "1"
+		},
+		"conditionKey": "mode",
+		"conditionValue": "manual",
+		"tab": "Settings"
+	},
+
+	"manualPump": {
+		"type": "select",
+		"name": "Pump",
+		"options": {
+			"-1": "-1",
+			"0": "0",
+			"1": "1"
+		},
+		"conditionKey": "mode",
+		"conditionValue": "manual",
+		"tab": "Settings"
+	},
+
+	"targetTemp": {
+		"type": "text",
+		"name": "Temperature",
+		"conditionKey": "mode",
+		"conditionValue": "auto",
+		"tab": "Settings"
+	},
+
+	"floodDuration": {
+		"type": "duration",
+		"name": "Flood Duration",
+		"tab": "Flood & Drain"
+	},
+
+	"waitDuration": {
+		"type": "duration",
+		"name": "Wait Duration",
+		"tab": "Flood & Drain"
+	},
+
+	"drainDuration": {
+		"type": "duration",
+		"name": "Drain Duration",
+		"tab": "Flood & Drain"
+	},
+
+	"lightDuration": {
+		"type": "duration",
+		"name": "Light Duration",
+		"tab": "Light",
+		"persist": true
+	},
+
+	"lightSchedule": {
+		"type": "intervaltimer",
+		"name": "Light Schedule",
+		"tab": "Light",
+		"persist": true
+	},
+
+	"ph1": {
+		"type": "text",
+		"name": "pH1",
+		"tab": "pH Calibration"
+	},
+
+	"ph2": {
+		"type": "text",
+		"name": "pH2",
+		"tab": "pH Calibration"
+	},
+
+	"ph3": {
+		"type": "text",
+		"name": "pH3",
+		"tab": "pH Calibration"
+	},
+
+	"ph4": {
+		"type": "text",
+		"name": "pH4",
+		"tab": "pH Calibration"
+	}
+}
