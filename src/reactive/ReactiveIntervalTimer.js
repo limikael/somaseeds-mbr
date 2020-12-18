@@ -15,8 +15,6 @@ class ReactiveIntervalTimer extends ReactiveValue {
 		this.multiSchedule.clearSchedules();
 
 		for (let def of this.get()) {
-			console.log(def);
-
 			if (def.interval)
 				this.multiSchedule.addSchedule(def);
 		}

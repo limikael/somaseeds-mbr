@@ -13,7 +13,11 @@ class ReactiveConsoleLogger {
 	}
 
 	update=(label, value)=>{
-		console.log(label+"\t"+value.get());
+		let d=new Date();
+
+		let s="[ "+d.getHours()+":"+d.getMinutes()+":"+d.getSeconds()+"] ";
+
+		console.log(s+label+"\t"+value.get());
 	}
 }
 

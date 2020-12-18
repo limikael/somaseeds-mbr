@@ -5,7 +5,7 @@
 		"options": {
 			"manual": "Manual",
 			"auto": "Auto",
-			"autodebug": "Auto debug"
+			"debug": "Auto debug"
 		},
 		"tab": "Settings",
 		"persist": true
@@ -60,11 +60,27 @@
 		"tab": "Settings"
 	},
 
-	"targetTemp": {
+	"tempTarget": {
 		"type": "text",
-		"name": "Temperature",
+		"name": "Temperature Target",
 		"conditionKey": "mode",
-		"conditionValue": "auto",
+		"conditionValue": ["auto","debug"],
+		"tab": "Settings"
+	},
+
+	"tempTolerance": {
+		"type": "text",
+		"name": "Temperature Tolerance",
+		"conditionKey": "mode",
+		"conditionValue": ["auto","debug"],
+		"tab": "Settings"
+	},
+
+	"debugTemp": {
+		"type": "text",
+		"name": "Debug Temperature",
+		"conditionKey": "mode",
+		"conditionValue": "debug",
 		"tab": "Settings"
 	},
 
@@ -84,6 +100,13 @@
 		"type": "duration",
 		"name": "Drain Duration",
 		"tab": "Flood & Drain"
+	},
+
+	"pumpSchedule": {
+		"type": "intervaltimer",
+		"name": "Flood Schedule",
+		"tab": "Flood & Drain",
+		"persist": true
 	},
 
 	"lightDuration": {

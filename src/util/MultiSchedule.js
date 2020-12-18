@@ -8,8 +8,6 @@ class MultiSchedule extends EventEmitter {
 	}
 
 	addSchedule(def) {
-		console.log("adding..");
-
 		let schedule=new Schedule(def);
 
 		schedule.on("trigger",this.onInterval);

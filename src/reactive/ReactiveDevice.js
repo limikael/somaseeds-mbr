@@ -35,8 +35,8 @@ class ReactiveDevice {
 	}
 
 	async updateApiCall(params) {
-		console.log("update...");
-		console.log(params);
+		/*console.log("update...");
+		console.log(params);*/
 
 		for (let key in params) {
 			if (this.fieldsByKey[key]) {
@@ -100,6 +100,10 @@ class ReactiveDevice {
 		this[key]=o;
 		this[key].set(this.settings[key]);
 		this.console.addWatch(options.key+":",this[key]);
+	}
+
+	addWatch(label, val) {
+		this.console.addWatch(label,val);
 	}
 
 	setDeviceDef(def) {
