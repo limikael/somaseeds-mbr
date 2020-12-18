@@ -2,7 +2,7 @@ const ReactiveValue=require("../reactive/ReactiveValue");
 const ReactiveTimeout=require("../reactive/ReactiveTimeout");
 const ReactiveSchmitTrigger=require("../reactive/ReactiveSchmittTrigger");
 const ReactiveOp=require("../reactive/ReactiveOp");
-
+const ReactiveStateSequece=require("../reactive/ReactiveStateSequence");
 /*
 		light
 		heater
@@ -48,10 +48,46 @@ class MbrLogic {
 			heater=>(heater?1:0),
 			this.heater
 		));
+
+		this.floodDuration=new ReactiveValue();
+		this.waitDuration=new ReactiveValue();
+		this.drainDuration=new ReactiveValue();
+
+		this.pumpSequence=new ReactiveStateSequece(3);
+		this.pumpSequence.timeoutDuration(0).connect(this.floodDuration);
+		this.pumpSequence.timeoutDuration(1).connect(this.waitDuration);
+		this.pumpSequence.timeoutDuration(2).connect(this.drainDuration);
+
+		this.pumpDirection=ReactiveOp.expr(
+			(state)=>{
+				switch (state) {
+					case 0:
+						return 1;
+						break;
+
+					case 1:
+						return 0;
+						break;
+
+					case 2:
+						return -1;
+						break;
+
+					default:
+						return 0;
+						break;
+				}
+			},
+			this.pumpSequence
+		);
 	}
 
 	startLight=()=>{
 		this.light.start();
+	}
+
+	startPump=()=>{
+		this.pumpSequence.start();
 	}
 }
 

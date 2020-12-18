@@ -87,19 +87,22 @@
 	"floodDuration": {
 		"type": "duration",
 		"name": "Flood Duration",
-		"tab": "Flood & Drain"
+		"tab": "Flood & Drain",
+		"persist": true
 	},
 
 	"waitDuration": {
 		"type": "duration",
 		"name": "Wait Duration",
-		"tab": "Flood & Drain"
+		"tab": "Flood & Drain",
+		"persist": true
 	},
 
 	"drainDuration": {
 		"type": "duration",
 		"name": "Drain Duration",
-		"tab": "Flood & Drain"
+		"tab": "Flood & Drain",
+		"persist": true
 	},
 
 	"pumpSchedule": {

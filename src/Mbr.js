@@ -13,6 +13,10 @@ class Mbr {
 		this.logic.lightDuration.connect(this.device.lightDuration);
 		this.logic.tempTarget.connect(this.device.tempTarget);
 		this.logic.tempTolerance.connect(this.device.tempTolerance);
+		this.logic.floodDuration.connect(this.device.floodDuration);
+		this.logic.waitDuration.connect(this.device.waitDuration);
+		this.logic.drainDuration.connect(this.device.drainDuration);
+		this.device.pumpSchedule.on("trigger",this.logic.startPump);
 
 		this.hw=new MbrMockHardware();
 		//this.hw=new MbrMockHardware();
@@ -51,15 +55,16 @@ class Mbr {
 			this.device.manualFan
 		));
 
-		/*hw.pumpDirection.connect(ReactiveOp.if(
+		this.hw.pumpDirection.connect(ReactiveOp.if(
 			autoMode,
-			logic.pump,
-			this.device.manualHeater
-		));*/
+			this.logic.pumpDirection,
+			this.device.manualPump
+		));
 
 		this.device.addWatch("Hw Light: ",this.hw.light);
 		this.device.addWatch("Hw Heater: ",this.hw.heater);
 		this.device.addWatch("Hw Fan: ",this.hw.fanDirection);
+		this.device.addWatch("Hw Pump: ",this.hw.pumpDirection);
 	}
 
 	run() {}

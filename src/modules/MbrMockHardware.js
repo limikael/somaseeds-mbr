@@ -12,8 +12,10 @@ class MbrMockHardware {
 	constructor() {
 		this.light=new ReactiveValue();
 		this.heater=new ReactiveValue();
-		this.temperature=new ReactiveValue();
 		this.fanDirection=new ReactiveValue();
+		this.pumpDirection=new ReactiveValue();
+
+		this.temperature=new ReactiveValue();
 	}
 }
 

@@ -39,11 +39,15 @@ class ReactiveTimeout extends ReactiveValue {
 
 	start() {
 		this.stop();
-		this.started=Date.now();
 
 		if (this.duration.get()) {
+			this.started=Date.now();
 			this.timeout=setTimeout(this.onTimeout,this.duration.get());
 			this.set(true);
+		}
+
+		else {
+			this.emit("timeout");
 		}
 	}
 
