@@ -5,6 +5,7 @@ const ReactiveValue=require("./ReactiveValue");
 const ReactiveConsole=require("./ReactiveConsole");
 const ReactiveConsoleLogger=require("./ReactiveConsoleLogger");
 const ReactiveIntervalTimer=require("./ReactiveIntervalTimer");
+const ReactiveLogger=require("./ReactiveLogger");
 
 class ReactiveDevice {
 	constructor(settingsFileName) {
@@ -32,6 +33,9 @@ class ReactiveDevice {
 
 		this.fields=[];
 		this.fieldsByKey={};
+
+		this.logger=new ReactiveLogger(this.settings.logUrl);
+		this.logger.setData("id",this.settings.id);
 	}
 
 	async updateApiCall(params) {
@@ -108,6 +112,10 @@ class ReactiveDevice {
 		this[key]=o;
 		this[key].set(this.settings[key]);
 		this.console.addWatch(options.key+":",this[key]);
+
+		if (options.log) {
+			this.logger.setData(key,o);
+		}
 	}
 
 	addWatch(label, val) {

@@ -19,27 +19,29 @@ class ReactiveLogger {
 	makeLogEntry=async ()=>{
 		let useData={};
 		let dataOk=true;
+		let logFields=[];
 
 		for (let key in this.data) {
-			if (this.data[key] instanceof ReactiveValue)
-				useData[key]=this.data[key].get();
+			if (this.data[key] instanceof ReactiveValue) {
+				let val=this.data[key].get();
+
+				if (val!==undefined)
+					useData[key]=val;
+
+				logFields.push(key);
+			}
 
 			else
 				useData[key]=this.data[key];
-
-			if (useData[key]===undefined)
-				dataOk=false;
 		}
 
-		if (dataOk) {
-			try {
-				await FetchUtil.postForm(this.url,useData);
-				this.error.set(null);
-			}
+		try {
+			await FetchUtil.postForm(this.url,useData);
+			this.error.set(null);
+		}
 
-			catch (e) {
-				this.error.set(String(e));
-			}
+		catch (e) {
+			this.error.set(String(e));
 		}
 
 		setTimeout(this.makeLogEntry,this.freq);

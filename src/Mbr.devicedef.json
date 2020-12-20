@@ -3,21 +3,24 @@
 		"type": "number",
 		"name": "Temperature",
 		"tab": "Values",
-		"readonly": true
+		"readonly": true,
+		"log": true
 	},
 
 	"ph": {
 		"type": "number",
 		"name": "pH",
 		"tab": "Values",
-		"readonly": true
+		"readonly": true,
+		"log": true
 	},
 
 	"phRaw": {
 		"type": "number",
 		"name": "pH Raw Reading",
 		"tab": "Values",
-		"readonly": true
+		"readonly": true,
+		"log": true
 	},
 
 	"mode": {
@@ -86,7 +89,8 @@
 		"name": "Temperature Target",
 		"conditionKey": "mode",
 		"conditionValue": ["auto","debug"],
-		"tab": "Settings"
+		"tab": "Settings",
+		"persist": true
 	},
 
 	"tempTolerance": {
@@ -94,7 +98,8 @@
 		"name": "Temperature Tolerance",
 		"conditionKey": "mode",
 		"conditionValue": ["auto","debug"],
-		"tab": "Settings"
+		"tab": "Settings",
+		"persist": true
 	},
 
 	"debugTemp": {
