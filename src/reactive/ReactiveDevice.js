@@ -92,6 +92,14 @@ class ReactiveDevice {
 				o=new ReactiveIntervalTimer();
 				break;
 
+			case "number":
+				o=new ReactiveValue("number");
+				break;
+
+			case "number-not-nan":
+				o=new ReactiveValue("number-not-nan");
+				break;
+
 			default:
 				o=new ReactiveValue();
 				break;

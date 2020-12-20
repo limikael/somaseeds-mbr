@@ -2,6 +2,7 @@ const ReactiveDevice=require("./reactive/ReactiveDevice");
 const MbrLogic=require("./modules/MbrLogic");
 const MbrMockHardware=require("./modules/MbrMockHardware");
 const ReactiveOp=require("./reactive/ReactiveOp");
+const ReactiveLinearTranslator=require("./reactive/ReactiveLinearTranslator");
 
 class Mbr {
 	constructor(settingsFileName) {
@@ -20,6 +21,17 @@ class Mbr {
 
 		this.hw=new MbrMockHardware();
 		//this.hw=new MbrMockHardware();
+
+		this.device.temperature.connect(this.hw.temperature);
+		this.device.phRaw.connect(this.hw.phRaw);
+
+		this.phTranslator=new ReactiveLinearTranslator();
+		this.phTranslator.input.connect(this.hw.phRaw);
+		this.phTranslator.measuredOne.connect(this.device.phMeasuredOne);
+		this.phTranslator.measuredTwo.connect(this.device.phMeasuredTwo);
+		this.phTranslator.translatedOne.connect(this.device.phTranslatedOne);
+		this.phTranslator.translatedTwo.connect(this.device.phTranslatedTwo);
+		this.device.ph.connect(this.phTranslator);
 
 		let debugMode=ReactiveOp.expr(
 			mode=>(mode=="debug"),

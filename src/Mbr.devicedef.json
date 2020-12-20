@@ -1,4 +1,25 @@
 {
+	"temperature": {
+		"type": "number",
+		"name": "Temperature",
+		"tab": "Values",
+		"readonly": true
+	},
+
+	"ph": {
+		"type": "number",
+		"name": "pH",
+		"tab": "Values",
+		"readonly": true
+	},
+
+	"phRaw": {
+		"type": "number",
+		"name": "pH Raw Reading",
+		"tab": "Values",
+		"readonly": true
+	},
+
 	"mode": {
 		"type": "select",
 		"name": "Mode",
@@ -61,7 +82,7 @@
 	},
 
 	"tempTarget": {
-		"type": "text",
+		"type": "number-not-nan",
 		"name": "Temperature Target",
 		"conditionKey": "mode",
 		"conditionValue": ["auto","debug"],
@@ -69,7 +90,7 @@
 	},
 
 	"tempTolerance": {
-		"type": "text",
+		"type": "number-not-nan",
 		"name": "Temperature Tolerance",
 		"conditionKey": "mode",
 		"conditionValue": ["auto","debug"],
@@ -77,7 +98,7 @@
 	},
 
 	"debugTemp": {
-		"type": "text",
+		"type": "number-not-nan",
 		"name": "Debug Temperature",
 		"conditionKey": "mode",
 		"conditionValue": "debug",
@@ -126,27 +147,31 @@
 		"persist": true
 	},
 
-	"ph1": {
-		"type": "text",
-		"name": "pH1",
-		"tab": "pH Calibration"
+	"phMeasuredOne": {
+		"type": "number-not-nan",
+		"name": "pH raw reading...",
+		"tab": "pH Calibration",
+		"persist": true
 	},
 
-	"ph2": {
-		"type": "text",
-		"name": "pH2",
-		"tab": "pH Calibration"
+	"phTranslatedOne": {
+		"type": "number-not-nan",
+		"name": "...translates to",
+		"tab": "pH Calibration",
+		"persist": true
 	},
 
-	"ph3": {
-		"type": "text",
-		"name": "pH3",
-		"tab": "pH Calibration"
+	"phMeasuredTwo": {
+		"type": "number-not-nan",
+		"name": "pH raw reading...",
+		"tab": "pH Calibration",
+		"persist": true
 	},
 
-	"ph4": {
-		"type": "text",
-		"name": "pH4",
-		"tab": "pH Calibration"
+	"phTranslatedTwo": {
+		"type": "number-not-nan",
+		"name": "...translates to",
+		"tab": "pH Calibration",
+		"persist": true
 	}
 }

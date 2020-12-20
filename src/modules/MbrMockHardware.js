@@ -16,6 +16,11 @@ class MbrMockHardware {
 		this.pumpDirection=new ReactiveValue();
 
 		this.temperature=new ReactiveValue();
+		this.humidity=new ReactiveValue();
+		this.phRaw=new ReactiveValue();
+
+		this.temperature.set(32);
+		this.phRaw.set(512);
 	}
 }
 
