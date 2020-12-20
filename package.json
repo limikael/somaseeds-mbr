@@ -25,7 +25,8 @@
     "node-dht-sensor": "^0.4.3",
     "node-fetch": "^2.6.1",
     "onoff": "^6.0.0",
-    "restbroker": "git+https://github.com/limikael/restbroker.git"
+    "restbroker": "git+https://github.com/limikael/restbroker.git",
+    "which": "^2.0.2"
   },
   "devDependencies": {
     "jasmine": "^3.6.3"

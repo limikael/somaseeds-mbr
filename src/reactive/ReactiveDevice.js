@@ -96,6 +96,10 @@ class ReactiveDevice {
 				o=new ReactiveIntervalTimer();
 				break;
 
+			case "boolean":
+				o=new ReactiveValue("boolean");
+				break;
+
 			case "number":
 				o=new ReactiveValue("number");
 				break;

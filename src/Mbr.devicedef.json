@@ -36,24 +36,16 @@
 	},
 
 	"manualLight": {
-		"type": "select",
+		"type": "boolean",
 		"name": "Light",
-		"options": {
-			"false": "Off",
-			"true": "On"
-		},
 		"conditionKey": "mode",
 		"conditionValue": "manual",
 		"tab": "Settings"
 	},
 
 	"manualHeater": {
-		"type": "select",
+		"type": "boolean",
 		"name": "Heater",
-		"options": {
-			"false": "Off",
-			"true": "On"
-		},
 		"conditionKey": "mode",
 		"conditionValue": "manual",
 		"tab": "Settings"
@@ -178,5 +170,18 @@
 		"name": "...translates to",
 		"tab": "pH Calibration",
 		"persist": true
+	},
+
+	"tunnel": {
+		"type": "boolean",
+		"name": "SSH Tunnel",
+		"tab": "SSH Tunnel"
+	},
+
+	"tunnelStatus": {
+		"type": "text",
+		"name": "tunnelStatus",
+		"tab": "SSH Tunnel",
+		"readonly": true
 	}
 }

@@ -3,6 +3,7 @@ const MbrLogic=require("./modules/MbrLogic");
 const MbrMockHardware=require("./modules/MbrMockHardware");
 const ReactiveOp=require("./reactive/ReactiveOp");
 const ReactiveLinearTranslator=require("./reactive/ReactiveLinearTranslator");
+const Ngrok=require("./util/Ngrok");
 
 class Mbr {
 	constructor(settingsFileName) {
@@ -77,6 +78,31 @@ class Mbr {
 		this.device.addWatch("Hw Heater: ",this.hw.heater);
 		this.device.addWatch("Hw Fan: ",this.hw.fanDirection);
 		this.device.addWatch("Hw Pump: ",this.hw.pumpDirection);
+
+		this.device.tunnel.on("change",this.onTunnelChange);
+
+		this.ngrok=new Ngrok();
+		this.onTunnelChange();
+	}
+
+	onTunnelChange=async ()=>{
+		this.device.tunnelStatus.set("Starting...");
+
+		if (this.device.tunnel.get()) {
+			try {
+				let tunnelStatus=await this.ngrok.start();
+				this.device.tunnelStatus.set(tunnelStatus);
+			}
+
+			catch (e) {
+				this.device.tunnelStatus.set("Unable to start tunnel.");
+			}
+		}
+
+		else {
+			this.ngrok.stop();
+			this.device.tunnelStatus.set("Stopped.");
+		}
 	}
 
 	run() {}
