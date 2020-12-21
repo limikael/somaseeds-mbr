@@ -17,6 +17,9 @@ class ReactiveLogger {
 	}
 
 	makeLogEntry=async ()=>{
+		if (!this.url)
+			return;
+
 		let useData={};
 		let dataOk=true;
 		let logFields=[];

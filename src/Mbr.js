@@ -1,6 +1,7 @@
 const ReactiveDevice=require("./reactive/ReactiveDevice");
 const MbrLogic=require("./modules/MbrLogic");
 const MbrMockHardware=require("./modules/MbrMockHardware");
+const MbrHardware=require("./modules/MbrHardware");
 const ReactiveOp=require("./reactive/ReactiveOp");
 const ReactiveLinearTranslator=require("./reactive/ReactiveLinearTranslator");
 const Ngrok=require("./util/Ngrok");
@@ -20,8 +21,8 @@ class Mbr {
 		this.logic.drainDuration.connect(this.device.drainDuration);
 		this.device.pumpSchedule.on("trigger",this.logic.startPump);
 
-		this.hw=new MbrMockHardware();
 		//this.hw=new MbrMockHardware();
+		this.hw=new MbrHardware();
 
 		this.device.temperature.connect(this.hw.temperature);
 		this.device.phRaw.connect(this.hw.phRaw);
@@ -86,9 +87,9 @@ class Mbr {
 	}
 
 	onTunnelChange=async ()=>{
-		this.device.tunnelStatus.set("Starting...");
-
 		if (this.device.tunnel.get()) {
+			this.device.tunnelStatus.set("Starting...");
+
 			try {
 				let tunnelStatus=await this.ngrok.start();
 				this.device.tunnelStatus.set(tunnelStatus);
