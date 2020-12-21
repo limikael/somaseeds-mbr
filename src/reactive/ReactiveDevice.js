@@ -36,6 +36,9 @@ class ReactiveDevice {
 
 		this.logger=new ReactiveLogger(this.settings.logUrl);
 		this.logger.setData("id",this.settings.id);
+
+		if (this.settings.apiKey)
+			this.logger.setData("key",this.settings.apiKey);
 	}
 
 	async updateApiCall(params) {

@@ -44,6 +44,7 @@ class ReactiveLogger {
 		}
 
 		catch (e) {
+			console.log("error sending log: "+String(e));
 			this.error.set(String(e));
 		}
 

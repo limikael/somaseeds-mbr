@@ -21,8 +21,8 @@ class Mbr {
 		this.logic.drainDuration.connect(this.device.drainDuration);
 		this.device.pumpSchedule.on("trigger",this.logic.startPump);
 
-		//this.hw=new MbrMockHardware();
-		this.hw=new MbrHardware();
+		this.hw=new MbrMockHardware();
+		//this.hw=new MbrHardware();
 
 		this.device.temperature.connect(this.hw.temperature);
 		this.device.phRaw.connect(this.hw.phRaw);

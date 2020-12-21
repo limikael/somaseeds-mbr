@@ -16,7 +16,12 @@ class FetchUtil {
 			body: querystring.stringify(data)
 		};
 
-		return FetchUtil.fetch(url,useOptions);
+		let response=await FetchUtil.fetch(url,useOptions);
+
+		if (response.status!=200)
+			throw new Error("Unable to post form, error: "+response.status);
+
+		return response;
 	}
 }
 
