@@ -23,6 +23,7 @@ class Mbr {
 
 		//this.hw=new MbrMockHardware();
 		this.hw=new MbrHardware();
+		this.hw.status.connect(this.device.status);
 
 		this.device.temperature.connect(this.hw.temperature);
 		this.device.phRaw.connect(this.hw.phRaw);
@@ -62,6 +63,8 @@ class Mbr {
 		this.device.addWatch("Hw Heater: ",this.hw.heater);
 		this.device.addWatch("Hw Fan: ",this.hw.fanDirection);
 		this.device.addWatch("Hw Pump: ",this.hw.pumpDirection);
+
+		this.device.addWatch("Device Status: ",this.device.status);
 
 		this.device.tunnel.on("change",this.onTunnelChange);
 

@@ -5,6 +5,7 @@ const ReactiveMcp23017=require("../reactive/ReactiveMcp23017");
 const ReactiveDcMotor=require("../reactive/ReactiveDcMotor");
 const ReactiveDhtSensor=require("../reactive/ReactiveDhtSensor");
 const ReactiveAdConverter=require("../reactive/ReactiveAdConverter");
+const ReactiveBlinker=require("../reactive/ReactiveBlinker");
 
 class MbrHardware {
 	constructor() {
@@ -15,6 +16,7 @@ class MbrHardware {
 		this.temperature=new ReactiveValue();
 		this.humidity=new ReactiveValue();
 		this.phRaw=new ReactiveValue();
+		this.status=new ReactiveValue();
 
 		// Relays.
 		this.i2c=i2cbus.openSync(1);
@@ -39,6 +41,19 @@ class MbrHardware {
 		// pH
 		this.adConverter=new ReactiveAdConverter(0);
 		this.phRaw.connect(this.adConverter.value);
+
+		this.blinkPattern=ReactiveOp.expr(
+			(status)=>{
+				if (status)
+					return "x                   ";
+
+				return "x ";
+			},
+			this.status
+		);
+
+		this.blinker=new ReactiveBlinker(17);
+		this.blinker.pattern.connect(this.blinkPattern);
 	}
 }
 
