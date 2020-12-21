@@ -1,4 +1,5 @@
 const ReactiveExpression=require("./ReactiveExpression");
+const ReactiveValue=require("./ReactiveValue");
 
 class ReactiveOp {
 	static not(source) {
@@ -64,6 +65,21 @@ class ReactiveOp {
 
 		for (let i=0; i<sources.length; i++)
 			result.param(i).connect(sources[i]);
+
+		return result;
+	}
+
+	static switch(val, cases) {
+		let result=new ReactiveValue();
+
+		function updateResult() {
+			for (let key in cases)
+				if (val.get()==key)
+					result.set(cases[key]());
+		}
+
+		val.on("change",updateResult);
+		updateResult();
 
 		return result;
 	}

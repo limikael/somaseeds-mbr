@@ -21,8 +21,8 @@ class Mbr {
 		this.logic.drainDuration.connect(this.device.drainDuration);
 		this.device.pumpSchedule.on("trigger",this.logic.startPump);
 
-		this.hw=new MbrMockHardware();
-		//this.hw=new MbrHardware();
+		//this.hw=new MbrMockHardware();
+		this.hw=new MbrHardware();
 
 		this.device.temperature.connect(this.hw.temperature);
 		this.device.phRaw.connect(this.hw.phRaw);
@@ -35,45 +35,28 @@ class Mbr {
 		this.phTranslator.translatedTwo.connect(this.device.phTranslatedTwo);
 		this.device.ph.connect(this.phTranslator);
 
-		let debugMode=ReactiveOp.expr(
-			mode=>(mode=="debug"),
-			this.device.mode
-		);
-
-		this.logic.temperature.connect(ReactiveOp.if(
-			debugMode,
-			this.device.debugTemp,
-			this.hw.temperature
-		));
-
-		let autoMode=ReactiveOp.expr(
-			mode=>(mode=="auto" || mode=="debug"),
-			this.device.mode
-		);
-
-		this.hw.light.connect(ReactiveOp.if(
-			autoMode,
-			this.logic.light,
-			this.device.manualLight
-		));
-
-		this.hw.heater.connect(ReactiveOp.if(
-			autoMode,
-			this.logic.heater,
-			this.device.manualHeater
-		));
-
-		this.hw.fanDirection.connect(ReactiveOp.if(
-			autoMode,
-			this.logic.fanDirection,
-			this.device.manualFan
-		));
-
-		this.hw.pumpDirection.connect(ReactiveOp.if(
-			autoMode,
-			this.logic.pumpDirection,
-			this.device.manualPump
-		));
+		ReactiveOp.switch(this.device.mode,{
+			"manual": ()=>{
+				this.hw.light.connect(this.device.manualLight);
+				this.hw.pumpDirection.connect(this.device.manualPump);
+				this.hw.heater.connect(this.device.manualHeater);
+				this.hw.fanDirection.connect(this.device.manualFan);
+			},
+			"auto": ()=>{
+				this.hw.light.connect(this.logic.light);
+				this.hw.pumpDirection.connect(this.logic.pumpDirection);
+				this.hw.heater.connect(this.logic.heater);
+				this.hw.fanDirection.connect(this.logic.fanDirection);
+				this.logic.temperature.connect(this.hw.temperature);
+			},
+			"debug": ()=>{
+				this.hw.light.connect(this.logic.light);
+				this.hw.pumpDirection.connect(this.logic.pumpDirection);
+				this.hw.heater.connect(this.logic.heater);
+				this.hw.fanDirection.connect(this.logic.fanDirection);
+				this.logic.temperature.connect(this.device.debugTemp);
+			}
+		});
 
 		this.device.addWatch("Hw Light: ",this.hw.light);
 		this.device.addWatch("Hw Heater: ",this.hw.heater);
