@@ -6,6 +6,7 @@ const ReactiveConsole=require("./ReactiveConsole");
 const ReactiveConsoleLogger=require("./ReactiveConsoleLogger");
 const ReactiveIntervalTimer=require("./ReactiveIntervalTimer");
 const ReactiveLogger=require("./ReactiveLogger");
+const ReactiveOp=require("./ReactiveOp");
 
 class ReactiveDevice {
 	constructor(settingsFileName) {
@@ -39,6 +40,11 @@ class ReactiveDevice {
 
 		if (this.settings.apiKey)
 			this.logger.setData("key",this.settings.apiKey);
+
+		this.status=ReactiveOp.and(
+			this.restStatus,
+			this.logger.status
+		);
 	}
 
 	async updateApiCall(params) {

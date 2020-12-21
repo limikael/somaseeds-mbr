@@ -8,6 +8,7 @@ class ReactiveLogger {
 		this.error=new ReactiveValue();
 		this.fetchOptions={};
 		this.data={};
+		this.status=new ReactiveValue("boolean");
 
 		process.nextTick(this.makeLogEntry);
 	}
@@ -41,11 +42,13 @@ class ReactiveLogger {
 		try {
 			await FetchUtil.postForm(this.url,useData);
 			this.error.set(null);
+			this.status.set(true);
 		}
 
 		catch (e) {
 			console.log("error sending log: "+String(e));
 			this.error.set(String(e));
+			this.status.set(false);
 		}
 
 		setTimeout(this.makeLogEntry,this.freq);
